@@ -34,10 +34,26 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CallerIdentity.cs" />
+    <Compile Include="ConnectionCache.cs" />
+    <Compile Include="ConnectionWrapper.cs" />
+    <Compile Include="DbContext.cs" />
+    <Compile Include="Extensions\CommandExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Helpers\Snapshot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResultSetSchema.cs" />
+    <Compile Include="RowStore.cs" />
+    <Compile Include="SqlCommandSetWrapper.cs" />
+    <Compile Include="UnitOfWork.cs" />
+    <Compile Include="Utils\New.cs" />
+    <Compile Include="Utils\ObjectFactory.cs" />
+    <Compile Include="Utils\ReflectionHelper.cs" />
     <Compile Include="Utils\StringBuilderCache.cs" />
+    <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

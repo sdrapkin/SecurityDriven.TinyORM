@@ -18,8 +18,10 @@ namespace SecurityDriven.TinyORM
 	public class DbContext
 	{
 		internal readonly string connectionString;
-		public string ConnectionString => this.connectionString;
 
+		public string ConnectionString { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return this.connectionString; } }
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal DbContext(string connectionString)
 		{
 			this.connectionString = connectionString;
@@ -120,7 +122,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CommitUnitOfWorkAsync()
 
-		public Task<int> CommitUnitOfWorkAsync(
+		public async Task<int> CommitUnitOfWorkAsync(
 			UnitOfWork uow,
 			int batchSize = DBConstants.DEFAULT_BATCH_SIZE,
 			CancellationToken cancellationToken = new CancellationToken(),
@@ -129,7 +131,6 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		)
 		{
-			SqlCommand command;
 			string commandString;
 			int cumulativeResult = 0;
 			int uowQueryCount = uow._queryList.Count;
@@ -156,7 +157,7 @@ namespace SecurityDriven.TinyORM
 							foreach (var element in batch)
 							{
 								commandString = string.Concat(CommandExtensions.CMD_HEADER_UOW, element.Item1, CommandExtensions.CMD_FOOTER);
-								command = new SqlCommand(commandString);
+								var command = new SqlCommand(commandString);
 								if (element.Item2 != null)
 								{
 									command.SetupParameters(element.Item2, element.Item3);
@@ -167,12 +168,7 @@ namespace SecurityDriven.TinyORM
 							}//element loop
 
 							var conn = connWrapper.Connection;
-							if (conn.State == ConnectionState.Closed)
-							{
-								// async statemachine overhead is not worth it for this call: SqlCommandSetWrapper.ExecuteNonQuery() is sync anyway
-								// await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
-								conn.Open();
-							}
+							if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 							sqlCommandSetWrapper.Connection = conn;
 
 							sqlCommandSetWrapper.CommandTimeout = 0; // set infinite timeout for all sql commands in SqlCommandSet
@@ -183,7 +179,7 @@ namespace SecurityDriven.TinyORM
 				}//connWrapper
 				ts.Complete();
 			}//ts
-			return Task.FromResult(cumulativeResult);
+			return cumulativeResult;
 		}// CommitUnitOfWorkAsync()
 		#endregion
 
@@ -204,13 +200,11 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var conn = connWrapper.Connection;
-					if (conn.State == ConnectionState.Closed)
-						await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-					using (var comm = conn.CreateCommand())
+					using (var comm = new SqlCommand(null, conn))
 					{
 						comm.Setup(sql, param, CallerIdentityDelegate().GetBytes(), commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
-
 						using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
 						{
 							var result = await FetchResultSets(reader, cancellationToken).ConfigureAwait(false);
@@ -303,14 +297,14 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region CallerIdentity
-		Func<CallerIdentity> callerIdentityDelegate = () => CallerIdentity.Anonymous;
-		public Func<CallerIdentity> CallerIdentityDelegate => this.callerIdentityDelegate;
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		Func<CallerIdentity> callerIdentityDelegate = () => CallerIdentity.Anonymous;
+		public Func<CallerIdentity> CallerIdentityDelegate { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return this.callerIdentityDelegate; } }
+
 		public void SetCallerIdentityDelegate(Func<CallerIdentity> newCallerIdentityDelegate)
 		{
 			if (newCallerIdentityDelegate == null) throw new ArgumentNullException("callerIdentityDelegate");
-			System.Threading.Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
+			Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
 		}// SetCallerIdentityDelegate()
 		#endregion
 

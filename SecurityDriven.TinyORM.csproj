@@ -43,6 +43,8 @@
     <Compile Include="DbContext.cs" />
     <Compile Include="Extensions\CommandExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Helpers\QB.cs" />
+    <Compile Include="Helpers\SequentialGuid.cs" />
     <Compile Include="Helpers\Snapshot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultSetSchema.cs" />

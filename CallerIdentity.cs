@@ -6,9 +6,8 @@ namespace SecurityDriven.TinyORM
 	using Utils;
 
 	/// <summary>
-	/// CallerIdentity class
+	/// CallerIdentity class.
 	/// </summary>
-	[Serializable]
 	public class CallerIdentity
 	{
 		/// <summary>

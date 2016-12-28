@@ -39,7 +39,7 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
-			var query = (await InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, expectedResultSetCount: 1, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber).ConfigureAwait(false))[0];
+			var query = (await InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber).ConfigureAwait(false))[0];
 			return query;
 		}// QueryAsync<TParamType>()
 
@@ -85,7 +85,7 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
-			return this.InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, expectedResultSetCount: 4, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+			return this.InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}// QueryMultipleAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -119,7 +119,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CommitUnitOfWorkAsync()
 
-		public async Task<int> CommitUnitOfWorkAsync(
+		public Task<int> CommitUnitOfWorkAsync(
 			UnitOfWork uow,
 			int batchSize = DBConstants.DEFAULT_BATCH_SIZE,
 			CancellationToken cancellationToken = new CancellationToken(),
@@ -167,7 +167,11 @@ namespace SecurityDriven.TinyORM
 
 							var conn = connWrapper.Connection;
 							if (conn.State == ConnectionState.Closed)
-								await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+							{
+								// async statemachine overhead is not worth it for this call: SqlCommandSetWrapper.ExecuteNonQuery() is sync anyway
+								// await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+								conn.Open();
+							}
 							sqlCommandSetWrapper.Connection = conn;
 
 							sqlCommandSetWrapper.CommandTimeout = 0; // set infinite timeout for all sql commands in SqlCommandSet
@@ -178,7 +182,7 @@ namespace SecurityDriven.TinyORM
 				}//connWrapper
 				ts.Complete();
 			}//ts
-			return cumulativeResult;
+			return Task.FromResult(cumulativeResult);
 		}// CommitUnitOfWorkAsync()
 		#endregion
 
@@ -189,7 +193,6 @@ namespace SecurityDriven.TinyORM
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = new CancellationToken(),
-			int expectedResultSetCount = 1,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -209,7 +212,7 @@ namespace SecurityDriven.TinyORM
 
 						using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
 						{
-							var result = await FetchResultSets(reader, cancellationToken, expectedResultSetCount).ConfigureAwait(false);
+							var result = await FetchResultSets(reader, cancellationToken).ConfigureAwait(false);
 							ts.Complete();
 							return result;
 						}//reader
@@ -220,9 +223,9 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region FetchResultSets
-		internal static async Task<List<List<dynamic>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken(), int expectedResultSetCount = 1)
+		internal static async Task<List<List<dynamic>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken())
 		{
-			var resultSetList = new List<List<dynamic>>(expectedResultSetCount);
+			var resultSetList = new List<List<dynamic>>(4);
 			int resultSetId = 0, fieldCount = 0;
 			object[] rowValues;
 			bool canBeCancelled = cancellationToken.CanBeCanceled;
@@ -264,6 +267,7 @@ namespace SecurityDriven.TinyORM
 		/// Creates a new TransactionScope if none exists, or joins an existing one.
 		/// </summary>
 		/// <returns>A new TransactionScope.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TransactionScope CreateTransactionScope() => CreateTransactionScope(TransactionScopeOption.Required, defaultTransactionOptions);
 
 		/// <summary>
@@ -271,6 +275,7 @@ namespace SecurityDriven.TinyORM
 		/// </summary>
 		/// <param name="scopeOption">An instance of the TransactionScopeOption enumeration that describes the transaction requirements associated with this transaction scope.</param>
 		/// <returns>A new TransactionScope.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption) => CreateTransactionScope(scopeOption, defaultTransactionOptions);
 
 		/// <summary>
@@ -279,6 +284,7 @@ namespace SecurityDriven.TinyORM
 		/// <param name="scopeOption">An instance of the TransactionScopeOption enumeration that describes the transaction requirements associated with this transaction scope.</param>
 		/// <param name="transactionOptions">A TransactionOptions structure that describes the transaction options to use if a new transaction is created. If an existing transaction is used, the timeout value in this parameter applies to the transaction scope. If that time expires before the scope is disposed, the transaction is aborted.</param>
 		/// <returns>A new TransactionScope.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption, TransactionOptions transactionOptions)
 		{
 			var current_ts = Transaction.Current;
@@ -290,7 +296,9 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region CreateUnitOfWork
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static UnitOfWork CreateUnitOfWork() => new UnitOfWork();
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static UnitOfWork CreateUnitOfWork(IEnumerable<UnitOfWork> uowList) => new UnitOfWork().Append(uowList);
 		#endregion
 
@@ -298,6 +306,7 @@ namespace SecurityDriven.TinyORM
 		Func<CallerIdentity> callerIdentityDelegate = () => CallerIdentity.Anonymous;
 		public Func<CallerIdentity> CallerIdentityDelegate => this.callerIdentityDelegate;
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetCallerIdentityDelegate(Func<CallerIdentity> newCallerIdentityDelegate)
 		{
 			if (newCallerIdentityDelegate == null) throw new ArgumentNullException("callerIdentityDelegate");

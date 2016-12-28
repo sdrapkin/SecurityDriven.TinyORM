@@ -25,6 +25,7 @@ namespace SecurityDriven.TinyORM
 			this.connectionString = connectionString;
 		}//ctor
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static DbContext CreateDbContext(string connectionString) => new DbContext(connectionString);
 
 		#region QueryAsync()
@@ -225,7 +226,7 @@ namespace SecurityDriven.TinyORM
 		#region FetchResultSets
 		internal static async Task<List<List<dynamic>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken())
 		{
-			var resultSetList = new List<List<dynamic>>(4);
+			var resultSetList = new List<List<dynamic>>(1); // optimizing for a single result set
 			int resultSetId = 0, fieldCount = 0;
 			object[] rowValues;
 			bool canBeCancelled = cancellationToken.CanBeCanceled;
@@ -284,7 +285,6 @@ namespace SecurityDriven.TinyORM
 		/// <param name="scopeOption">An instance of the TransactionScopeOption enumeration that describes the transaction requirements associated with this transaction scope.</param>
 		/// <param name="transactionOptions">A TransactionOptions structure that describes the transaction options to use if a new transaction is created. If an existing transaction is used, the timeout value in this parameter applies to the transaction scope. If that time expires before the scope is disposed, the transaction is aborted.</param>
 		/// <returns>A new TransactionScope.</returns>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption, TransactionOptions transactionOptions)
 		{
 			var current_ts = Transaction.Current;
@@ -316,24 +316,13 @@ namespace SecurityDriven.TinyORM
 
 		#region Connection-related
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		ConnectionWrapper GetWrappedConnection()
-		{
-			ConnectionWrapper wrappedConnection = ConnectionCache.GetTransactionLinkedConnection(this);
-			return wrappedConnection ?? this.GetNewWrappedConnection();
-		}// GetWrappedConnection()
+		ConnectionWrapper GetWrappedConnection() => ConnectionCache.GetTransactionLinkedConnection(this) ?? this.GetNewWrappedConnection();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal ConnectionWrapper GetNewWrappedConnection()
-		{
-			return new ConnectionWrapper(CreateNewConnection());
-		}// GetNewWrappedConnection()
+		internal ConnectionWrapper GetNewWrappedConnection() => new ConnectionWrapper(CreateNewConnection());
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		SqlConnection CreateNewConnection()
-		{
-			var connection = new SqlConnection(this.connectionString);
-			return connection;
-		}// CreateNewConnection()
+		SqlConnection CreateNewConnection() => new SqlConnection(this.connectionString);
 		#endregion
 
 	}// class DbContext

@@ -42,6 +42,7 @@
     <Compile Include="ConnectionWrapper.cs" />
     <Compile Include="DbContext.cs" />
     <Compile Include="Extensions\CommandExtensions.cs" />
+    <Compile Include="Extensions\DynamicListExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Helpers\QB.cs" />
     <Compile Include="Helpers\SequentialGuid.cs" />
@@ -56,6 +57,9 @@
     <Compile Include="Utils\ReflectionHelper.cs" />
     <Compile Include="Utils\StringBuilderCache.cs" />
     <Compile Include="Utils\Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TODO.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

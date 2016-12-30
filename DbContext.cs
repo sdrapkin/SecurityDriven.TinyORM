@@ -31,7 +31,7 @@ namespace SecurityDriven.TinyORM
 		public static DbContext CreateDbContext(string connectionString) => new DbContext(connectionString);
 
 		#region QueryAsync()
-		public async Task<List<dynamic>> QueryAsync<TParamType>(
+		public async Task<IReadOnlyList<dynamic>> QueryAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -47,7 +47,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<List<dynamic>> QueryAsync(
+		public Task<IReadOnlyList<dynamic>> QueryAsync(
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -61,7 +61,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryAsync() - parameterless
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<List<dynamic>> QueryAsync(
+		public Task<IReadOnlyList<dynamic>> QueryAsync(
 			QueryInfoTuple queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -77,7 +77,7 @@ namespace SecurityDriven.TinyORM
 
 		#region QueryMultipleAsync
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<List<List<dynamic>>> QueryMultipleAsync<TParamType>(
+		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -92,7 +92,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryMultipleAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<List<List<dynamic>>> QueryMultipleAsync(
+		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -106,7 +106,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryMultipleAsync() -- parameterless
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<List<List<dynamic>>> QueryMultipleAsync(
+		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
 			QueryInfoTuple queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -184,7 +184,7 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region InternalQueryAsync
-		async Task<List<List<dynamic>>> InternalQueryAsync<TParamType>(
+		async Task<IReadOnlyList<IReadOnlyList<dynamic>>> InternalQueryAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -218,16 +218,16 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region FetchResultSets
-		internal static async Task<List<List<dynamic>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken())
+		internal static async Task<List<List<RowStore>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken())
 		{
-			var resultSetList = new List<List<dynamic>>(1); // optimizing for a single result set
+			var resultSetList = new List<List<RowStore>>(1); // optimizing for a single result set
 			int resultSetId = 0, fieldCount = 0;
 			object[] rowValues;
 			bool canBeCancelled = cancellationToken.CanBeCanceled;
 
 			do
 			{
-				var rowStoreList = new List<dynamic>(4);
+				var rowStoreList = new List<RowStore>(4);
 				ResultSetSchema resultSchema = null;
 				while (!(canBeCancelled && cancellationToken.IsCancellationRequested) && reader.Read()/*await reader.ReadAsync(cancellationToken).ConfigureAwait(false) */)
 				{

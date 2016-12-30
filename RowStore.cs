@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-
+using System.Threading.Tasks;
 namespace SecurityDriven.TinyORM
 {
 	using Utils;
@@ -86,10 +86,10 @@ namespace SecurityDriven.TinyORM
 		/// <summary>
 		/// Converts RowStore into an instance of T on a best-effort-match basis. Does not throw on any mismatches.
 		/// </summary>
-		public T ToObject<T>() where T : class, new()
+		public T ToObject<T>(Func<T> objectFactory) where T : class
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			var result = New<T>.Instance();
+			var result = objectFactory();
 			object val;
 			Action<object, object> setter;
 
@@ -104,13 +104,38 @@ namespace SecurityDriven.TinyORM
 			return result;
 		}// ToObject<T>()
 
+#if old_implementation
+		static T[] ToObjectArray<T>(IReadOnlyList<dynamic> listOfDynamic) where T : class, new()
+		{
+			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
+			var newListCount = listOfDynamic.Count;
+			var newList = new T[newListCount];
+
+			Parallel.For(0, newListCount, i =>
+			{
+				var objT = New<T>.Instance();//new T();
+				newList[i] = objT;
+				var row = (RowStore)listOfDynamic[i];
+				foreach (var kvp in setters)
+				{
+					var objValue = row[kvp.Key];
+					if (!(objValue is FieldNotFound))
+					{
+						kvp.Value(objT, objValue);
+					}
+				}
+			});
+			return newList;
+		}// ToObjectArray<T>()
+#endif
+
 		/// <summary>
 		/// Converts RowStore into an instance of T, and checks existence of all required (non-optional) properties. Failed checks throw an exception.
 		/// </summary>
-		public T ToCheckedObject<T>(string[] optionalProperties = null) where T : class, new()
+		public T ToCheckedObject<T>(Func<T> objectFactory, string[] optionalProperties = null) where T : class, new()
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			var result = New<T>.Instance();
+			var result = objectFactory();
 			HashSet<string> optionalPropertyHashSet = null;
 
 			foreach (var kvp in setters)

@@ -95,7 +95,7 @@ namespace SecurityDriven.TinyORM.Utils
 			if (!PropertySetters.TryGetValue(type, out dictionary))
 			{
 				IEnumerable<PropertyInfo> source = from p in type.GetProperties(propertyBindingFlags)
-												   where p.GetIndexParameters().Length == 0 && !p.ReflectedType.IsGenericType
+												   where p.GetIndexParameters().Length == 0 && !type.IsGenericType
 												   select p;
 				dictionary = new Dictionary<string, Action<object, object>>(source.Count(), Util.FastStringComparer.Instance);
 				foreach (PropertyInfo info in source)
@@ -108,9 +108,9 @@ namespace SecurityDriven.TinyORM.Utils
 						var value = Expression.Parameter(TypeConstants.ObjectType, "value");
 
 						// value as T is slightly faster than (T)value, so if it's not a value type, use that
-						UnaryExpression instanceCast = (info.ReflectedType.IsValueType) ?
-							Expression.Convert(instance, info.ReflectedType) :
-							Expression.TypeAs(instance, info.ReflectedType);
+						UnaryExpression instanceCast = (type.IsValueType) ?
+							Expression.Convert(instance, type) :
+							Expression.TypeAs(instance, type);
 
 						UnaryExpression valueCast = Expression.Convert(value, info.PropertyType);
 

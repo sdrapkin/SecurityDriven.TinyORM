@@ -6,9 +6,6 @@ using System.Text;
 namespace SecurityDriven.TinyORM.Helpers
 {
 	using Utils;
-	using Helpers;
-
-	using QueryInfoTuple = Tuple<string, Dictionary<string, object>>;
 
 	/// <summary>QueryBuilder.</summary>
 	public static class QB
@@ -23,7 +20,7 @@ namespace SecurityDriven.TinyORM.Helpers
 
 		#region Insert<T>()
 
-		public static QueryInfoTuple Insert<T>(T obj, Predicate<string> propFilter = null, string tableName = null) where T : class
+		public static QueryInfo Insert<T>(T obj, Predicate<string> propFilter = null, string tableName = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			var dict = ObjectFactory.ObjectToDictionary(obj);
@@ -53,7 +50,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			}//foreach
 
 			sb.Append(") VALUES (").Append(sbParams.ToString()).Append(')');
-			var result = new QueryInfoTuple(sb.ToString(), dictNew);
+			var result = new QueryInfo { SQL = sb.ToString(), ParameterMap = dictNew };
 			return result;
 		}// Insert<T>()
 		#endregion
@@ -61,16 +58,16 @@ namespace SecurityDriven.TinyORM.Helpers
 		#region Update<T, TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryInfoTuple Update<T>(T obj, string whereSql = null, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
+		public static QueryInfo Update<T>(T obj, string whereSql = null, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
 		{
 			return Update<T, string>(obj: obj, whereSql: whereSql, whereParam: null, propFilter: propFilter, tableName: tableName, dict: dict);
 		}// Update<T>
 
-		public static QueryInfoTuple Update<T, TParamType>(T obj, string whereSql = null, TParamType whereParam = null, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class where TParamType : class
+		public static QueryInfo Update<T, TParamType>(T obj, string whereSql = null, TParamType whereParam = null, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class where TParamType : class
 		{
 			if (dict == null) dict = ObjectFactory.ObjectToDictionary(obj);
-			QueryInfoTuple queryInfoTuple = UpdateRaw<T>(obj, propFilter, tableName, dict);
-			var paramDictAlias = queryInfoTuple.Item2;
+			QueryInfo queryInfo = UpdateRaw<T>(obj, propFilter, tableName, dict);
+			var paramDictAlias = queryInfo.ParameterMap;
 			var whereParamMap = default(Dictionary<string, object>);
 
 			if (string.IsNullOrEmpty(whereSql))
@@ -87,14 +84,14 @@ namespace SecurityDriven.TinyORM.Helpers
 				foreach (var kvp in whereParamMap)
 					paramDictAlias.Add(kvp.Key, kvp.Value);
 			}
-			whereSql = queryInfoTuple.Item1 + " WHERE " + whereSql;
-			queryInfoTuple = new QueryInfoTuple(whereSql, paramDictAlias);
-			return queryInfoTuple;
+			whereSql = queryInfo.SQL + " WHERE " + whereSql;
+			queryInfo = new QueryInfo { SQL = whereSql, ParameterMap = paramDictAlias };
+			return queryInfo;
 		}// Update<T, TParamType>()
 		#endregion
 
 		#region UpdateRaw<T>()
-		internal static QueryInfoTuple UpdateRaw<T>(T obj, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
+		internal static QueryInfo UpdateRaw<T>(T obj, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			if (dict == null) dict = ObjectFactory.ObjectToDictionary(obj);
@@ -121,13 +118,13 @@ namespace SecurityDriven.TinyORM.Helpers
 			}//foreach
 
 			if (i == 0) throw new ArgumentException("propFilter predicate is false for all property names.", "propFilter");
-			var result = new QueryInfoTuple(sb.ToString(), dictNew);
+			var result = new QueryInfo { SQL = sb.ToString(), ParameterMap = dictNew };
 			return result;
 		}// UpdateRaw<T>()
 		#endregion
 
 		#region Delete<TParamType>()
-		public static QueryInfoTuple Delete<TParamType>(string tableName = null, string whereSql = null, TParamType whereParam = null) where TParamType : class
+		public static QueryInfo Delete<TParamType>(string tableName = null, string whereSql = null, TParamType whereParam = null) where TParamType : class
 		{
 			if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");
 			if (string.IsNullOrEmpty(whereSql)) throw new ArgumentNullException("whereSql");
@@ -136,13 +133,13 @@ namespace SecurityDriven.TinyORM.Helpers
 			var whereParamMap = default(Dictionary<string, object>);
 
 			if (whereParam != null) whereParamMap = whereParam as Dictionary<string, object> ?? ObjectFactory.ObjectToDictionary(whereParam, parameterize: true);
-			var result = new QueryInfoTuple(sql, whereParamMap);
+			var result = new QueryInfo { SQL = sql, ParameterMap = whereParamMap };
 			return result;
 		}// Delete<TParamType>()
 		#endregion
 
 		#region Upsert<T>
-		public static QueryInfoTuple Upsert<T>(T obj, string tableName = null, Predicate<string> insertPropFilter = null, Predicate<string> updatePropFilter = null, string mergeOnSql = null) where T : class
+		public static QueryInfo Upsert<T>(T obj, string tableName = null, Predicate<string> insertPropFilter = null, Predicate<string> updatePropFilter = null, string mergeOnSql = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id";
@@ -218,7 +215,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				sbSql.Append(")\n");
 			}
 
-			var result = new QueryInfoTuple(sbSql.ToString(), dictParams);
+			var result = new QueryInfo { SQL = sbSql.ToString(), ParameterMap = dictParams };
 			return result;
 		}//Upsert()
 		#endregion

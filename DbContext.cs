@@ -13,8 +13,6 @@ namespace SecurityDriven.TinyORM
 	using Extensions;
 	using Utils;
 
-	using QueryInfoTuple = Tuple<string, Dictionary<string, object>>;
-
 	public class DbContext
 	{
 		internal readonly string connectionString;
@@ -62,7 +60,7 @@ namespace SecurityDriven.TinyORM
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public Task<IReadOnlyList<dynamic>> QueryAsync(
-			QueryInfoTuple queryInfo,
+			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = new CancellationToken(),
@@ -71,8 +69,8 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		)
 		{
-			return this.QueryAsync(sql: queryInfo.Item1, param: queryInfo.Item2, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-		}// QueryAsync() - QueryInfoTuple
+			return this.QueryAsync(sql: queryInfo.SQL, param: queryInfo.ParameterMap, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		}// QueryAsync() - QueryInfo
 		#endregion
 
 		#region QueryMultipleAsync
@@ -107,7 +105,7 @@ namespace SecurityDriven.TinyORM
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
-			QueryInfoTuple queryInfo,
+			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = new CancellationToken(),
@@ -116,15 +114,14 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		)
 		{
-			return this.QueryMultipleAsync(sql: queryInfo.Item1, param: queryInfo.Item2, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-		}// QueryMultipleAsync() - QueryInfoTuple
+			return this.QueryMultipleAsync(sql: queryInfo.SQL, param: queryInfo.ParameterMap, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		}// QueryMultipleAsync() - QueryInfo
 		#endregion
 
-		#region CommitUnitOfWorkAsync()
+		#region CommitQueryBatchAsync()
 
-		public async Task<int> CommitUnitOfWorkAsync(
-			UnitOfWork uow,
-			int batchSize = DBConstants.DEFAULT_BATCH_SIZE,
+		public async Task<int> CommitQueryBatchAsync(
+			QueryBatch queryBatch,
 			CancellationToken cancellationToken = new CancellationToken(),
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
@@ -133,15 +130,16 @@ namespace SecurityDriven.TinyORM
 		{
 			string commandString;
 			int cumulativeResult = 0;
-			int uowQueryCount = uow._queryList.Count;
+			int queryBatchCount = queryBatch.queryList.Count;
 			int index = -1;
+			int batchSize = queryBatch.BatchSize;
 
 			var callerIdentity = this.CallerIdentityDelegate();
 			bool isAnonymous = callerIdentity.UserId == CallerIdentity.Anonymous.UserId;
 
-			var batches = uow._queryList.GroupBy(_ =>
+			var batches = queryBatch.queryList.GroupBy(_ =>
 			{
-				if (uowQueryCount - index - 1 > batchSize / 3)
+				if (queryBatchCount - index - 1 > batchSize / 3)
 					++index;
 				return index / batchSize;
 			});
@@ -156,7 +154,7 @@ namespace SecurityDriven.TinyORM
 						{
 							foreach (var element in batch)
 							{
-								commandString = string.Concat(CommandExtensions.CMD_HEADER_UOW, element.Item1, CommandExtensions.CMD_FOOTER);
+								commandString = string.Concat(CommandExtensions.CMD_HEADER_QUERYBATCH, element.Item1, CommandExtensions.CMD_FOOTER);
 								var command = new SqlCommand(commandString);
 								if (element.Item2 != null)
 								{
@@ -180,7 +178,7 @@ namespace SecurityDriven.TinyORM
 				ts.Complete();
 			}//ts
 			return cumulativeResult;
-		}// CommitUnitOfWorkAsync()
+		}// CommitQueryBatchAsync()
 		#endregion
 
 		#region InternalQueryAsync
@@ -289,11 +287,11 @@ namespace SecurityDriven.TinyORM
 		}//CreateTransactionScope()
 		#endregion
 
-		#region CreateUnitOfWork
+		#region CreateQueryBatch
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static UnitOfWork CreateUnitOfWork() => new UnitOfWork();
+		public static QueryBatch CreateQueryBatch() => new QueryBatch();
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static UnitOfWork CreateUnitOfWork(IEnumerable<UnitOfWork> uowList) => new UnitOfWork().Append(uowList);
+		public static QueryBatch CreateQueryBatch(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
 		#endregion
 
 		#region CallerIdentity

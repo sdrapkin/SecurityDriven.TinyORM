@@ -133,13 +133,13 @@ namespace SecurityDriven.TinyORM.Extensions
 		internal const string CI_PARAMETER_NAME = "@@ci";
 
 		internal const string CMD_HEADER_START = "set nocount,xact_abort on;";
-		internal const string CMD_HEADER_START_UOW = "set xact_abort on;";
+		internal const string CMD_HEADER_START_QUERYBATCH = "set xact_abort on;";
 
 		// 112 is [MAX_CONTEXT_INFO_LENGTH minus size_of_ctx_guid, 128-16
 		internal const string CMD_HEADER_REST = "set " + CI_PARAMETER_NAME + "=" + CTX_PARAMETER_NAME + "+cast(right(" + CT_PARAMETER_NAME + ",112)as binary(112));set context_info " + CI_PARAMETER_NAME + ";\n";
 
 		internal const string CMD_HEADER = CMD_HEADER_START + CMD_HEADER_REST;
-		internal const string CMD_HEADER_UOW = CMD_HEADER_START_UOW + CMD_HEADER_REST;
+		internal const string CMD_HEADER_QUERYBATCH = CMD_HEADER_START_QUERYBATCH + CMD_HEADER_REST;
 		internal const string CMD_FOOTER = ";\nset context_info 0x";
 
 		internal const int MAX_UNICODE_STRING_LENGTH = 4000;

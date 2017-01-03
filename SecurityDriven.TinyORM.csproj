@@ -53,6 +53,7 @@
     <Compile Include="QueryInfo.cs" />
     <Compile Include="ResultSetSchema.cs" />
     <Compile Include="RowStore.cs" />
+    <Compile Include="Snapshot.cs" />
     <Compile Include="SqlCommandSetWrapper.cs" />
     <Compile Include="QueryBatch.cs" />
     <Compile Include="Utils\New.cs" />

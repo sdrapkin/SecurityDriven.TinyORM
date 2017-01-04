@@ -73,7 +73,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryAsync() - QueryInfo
 		#endregion
 
-		#region QueryMultipleAsync
+		#region QueryMultipleAsync()
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync<TParamType>(
 			string sql,
@@ -181,7 +181,7 @@ namespace SecurityDriven.TinyORM
 		}// CommitQueryBatchAsync()
 		#endregion
 
-		#region InternalQueryAsync
+		#region InternalQueryAsync()
 		async Task<IReadOnlyList<IReadOnlyList<dynamic>>> InternalQueryAsync<TParamType>(
 			string sql,
 			TParamType param,
@@ -215,7 +215,7 @@ namespace SecurityDriven.TinyORM
 		}// InternalQueryAsync<TParamType>()
 		#endregion
 
-		#region FetchResultSets
+		#region FetchResultSets()
 		internal static async Task<List<List<RowStore>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken())
 		{
 			var resultSetList = new List<List<RowStore>>(1); // optimizing for a single result set
@@ -287,7 +287,7 @@ namespace SecurityDriven.TinyORM
 		}//CreateTransactionScope()
 		#endregion
 
-		#region CreateQueryBatch
+		#region CreateQueryBatch()
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static QueryBatch CreateQueryBatch() => new QueryBatch();
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -315,6 +315,54 @@ namespace SecurityDriven.TinyORM
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		SqlConnection CreateNewConnection() => new SqlConnection(this.connectionString);
+		#endregion
+
+		#region SequentialReaderAsync()
+		public async Task SequentialReaderAsync<TParamType>(
+			string sql,
+			TParamType param,
+			Func<SqlDataReader, CancellationToken, Task> actionAsync,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = new CancellationToken(),
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		) where TParamType : class
+		{
+			using (var ts = DbContext.CreateTransactionScope())
+			{
+				using (var connWrapper = this.GetWrappedConnection())
+				{
+					var conn = connWrapper.Connection;
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+					using (var comm = new SqlCommand(null, conn))
+					{
+						comm.Setup(sql, param, CallerIdentityDelegate().GetBytes(), commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+						using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
+						{
+							await actionAsync(reader, cancellationToken).ConfigureAwait(false);
+						}//reader
+					}//comm
+					ts.Complete();
+				}//connWrapper
+			}//ts
+		}// SequentialReaderAsync<TParamType>()
+
+		public Task SequentialReaderAsync(
+			string sql,
+			Func<SqlDataReader, CancellationToken, Task> actionAsync,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = new CancellationToken(),
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		)
+		{
+			return this.SequentialReaderAsync<string>(sql, null, actionAsync, commandTimeout, sqlTextOnly, cancellationToken, callerMemberName, callerFilePath, callerLineNumber);
+		}// SequentialReaderAsync()
 		#endregion
 
 	}// class DbContext

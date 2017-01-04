@@ -1,6 +1,6 @@
 ![TinyORM](TinyORM-Logo.png "TinyORM")
 
-by [Stan Drapkin](https://github.com/sdrapkin "Stan Drapkin")
+**TinyORM** by [Stan Drapkin](https://github.com/sdrapkin "Stan Drapkin")
 
 ## Features: ##
 1.  Focused on **SQL Server** (any `SqlClient`-based db engine).

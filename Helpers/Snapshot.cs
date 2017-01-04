@@ -47,6 +47,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		/// <summary>Always-false predicate returned by Snapshot.Diff() when it finds no differences.</summary>
 		public static Predicate<string> NoDifference => noDifference;
 
+		/// <summary>Creates a snapshot of an object (captures public properties only).</summary>
 		public static Snapshot Create<T>(T obj) where T : class
 		{
 			var objDictionary = GetObjDictionary(obj);

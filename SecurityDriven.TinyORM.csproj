@@ -75,6 +75,7 @@
     <None Include="TODO.md" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="TinyORM-Logo-Icon.png" />
     <Content Include="TinyORM-logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

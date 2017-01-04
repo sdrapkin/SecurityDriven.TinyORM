@@ -35,8 +35,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>TinyORM.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -72,6 +71,7 @@
   <ItemGroup>
     <None Include="LICENSE.md" />
     <None Include="README.md" />
+    <None Include="TinyORM.snk" />
     <None Include="TODO.md" />
   </ItemGroup>
   <ItemGroup>

@@ -122,6 +122,7 @@ namespace SecurityDriven.TinyORM
 
 		public async Task<int> CommitQueryBatchAsync(
 			QueryBatch queryBatch,
+			int batchSize = 0,
 			CancellationToken cancellationToken = new CancellationToken(),
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
@@ -132,14 +133,16 @@ namespace SecurityDriven.TinyORM
 			int cumulativeResult = 0;
 			int queryBatchCount = queryBatch.queryList.Count;
 			int index = -1;
-			int batchSize = queryBatch.BatchSize;
+			int shortBatchSize = batchSize / 3;
+
+			if (batchSize == 0) batchSize = this.BatchSize;
 
 			var callerIdentity = this.CallerIdentityDelegate();
 			bool isAnonymous = callerIdentity.UserId == CallerIdentity.Anonymous.UserId;
 
 			var batches = queryBatch.queryList.GroupBy(_ =>
 			{
-				if (queryBatchCount - index - 1 > batchSize / 3)
+				if (queryBatchCount - index - 1 > shortBatchSize)
 					++index;
 				return index / batchSize;
 			});
@@ -179,6 +182,13 @@ namespace SecurityDriven.TinyORM
 			}//ts
 			return cumulativeResult;
 		}// CommitQueryBatchAsync()
+		#endregion
+
+		#region CreateQueryBatch()
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static QueryBatch CreateQueryBatch() => new QueryBatch();
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static QueryBatch CreateQueryBatch(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
 		#endregion
 
 		#region InternalQueryAsync()
@@ -287,13 +297,6 @@ namespace SecurityDriven.TinyORM
 		}//CreateTransactionScope()
 		#endregion
 
-		#region CreateQueryBatch()
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryBatch CreateQueryBatch() => new QueryBatch();
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryBatch CreateQueryBatch(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
-		#endregion
-
 		#region CallerIdentity
 
 		Func<CallerIdentity> callerIdentityDelegate = () => CallerIdentity.Anonymous;
@@ -365,12 +368,10 @@ namespace SecurityDriven.TinyORM
 		}// SequentialReaderAsync()
 		#endregion
 
-	}// class DbContext
+		const int DEFAULT_BATCH_SIZE = 50;
+		public int BatchSize = DEFAULT_BATCH_SIZE;
 
-	static class DBConstants
-	{
-		internal const int DEFAULT_BATCH_SIZE = 50;
-	}// class DBConstants
+	}// class DbContext
 
 	public enum StringType
 	{

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Transactions;
 
@@ -63,6 +64,7 @@ namespace SecurityDriven.TinyORM
 			}//lock
 		}// OnTransactionCompleted()
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		static Dictionary<string, ConnectionWrapper> GetNewConnectionCache(ref int count)
 		{
 			Interlocked.Increment(ref count);

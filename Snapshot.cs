@@ -35,13 +35,13 @@ namespace SecurityDriven.TinyORM
 		{
 			object val; string key;
 
-			var diffSet = new HashSet<string>(Util.FastStringComparer.Instance);
+			var diffSet = new Dictionary<string, bool>(this.propertyMap.Count, Util.FastStringComparer.Instance); // HashSet<T> does not have a "capacity" ctor; Value is ignored
 			foreach (var kvp in this.propertyMap)
 			{
 				if (propertyMap.TryGetValue(key = kvp.Key, out val) && !object.Equals(val, kvp.Value))
-					diffSet.Add(key);
+					diffSet.Add(key, default(bool));
 			}
-			return diffSet.Count > 0 ? propertyName => diffSet.Contains(propertyName) : NoDifference;
+			return diffSet.Count > 0 ? propertyName => diffSet.ContainsKey(propertyName) : NoDifference;
 		}// Diff()
 
 		/// <summary>Returns a predicate for changed property names (those that name-match to another "snapshot" but have different values), or a "Snapshot.NoDifference" predicate.</summary>

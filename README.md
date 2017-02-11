@@ -22,7 +22,7 @@
 15.  **Auditing**
 	* Caller identity tracking (*which user made the call?*).
 	* Callsite tracking (*which source code filename, method, and line# made the call?*).
-16. Helpers for `CREATE`, `UPDATE`, `DELETE`, and `MERGE` `T-SQL` generation.
+16. Helpers for `CREATE`, `UPDATE`, `DELETE`, and `UPSERT` `T-SQL` generation.
 17. `SequentialGuid` generator for **fragmentation-free**, **unique**, **unguessable**, **code-generated** clustered `uniqueidentifier` indexes.
 18. c# 6.0 in `safe` mode. Compiled `any cpu` for .NET 4.5.2+.
 19. Tiny codebase. Tiny ~45k `.dll`. No dependencies.

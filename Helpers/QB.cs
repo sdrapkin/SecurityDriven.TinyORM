@@ -124,6 +124,12 @@ namespace SecurityDriven.TinyORM.Helpers
 		#endregion
 
 		#region Delete<TParamType>()
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static QueryInfo Delete(string tableName = null, string whereSql = null)
+		{
+			return Delete<string>(tableName: tableName, whereSql: whereSql);
+		}// Delete()
+
 		public static QueryInfo Delete<TParamType>(string tableName = null, string whereSql = null, TParamType whereParam = null) where TParamType : class
 		{
 			if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");

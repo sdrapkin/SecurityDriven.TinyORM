@@ -110,8 +110,8 @@ namespace SecurityDriven.TinyORM.Helpers
 
 			static Guid GetSequentialUuid()
 			{
-				const int RPC_S_OK = 0; Guid g;
-				if (UuidCreateSequential(out g) == RPC_S_OK) return g;
+				const int RPC_S_OK = 0;
+				if (UuidCreateSequential(out var g) == RPC_S_OK) return g;
 				throw new Exception("UuidCreateSequential did not return RPC_S_OK.");
 			}//GetSequentialUuid()
 		}// struct GuidStruct

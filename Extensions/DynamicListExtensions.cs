@@ -12,7 +12,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			int newListCount = listOfDynamic.Count, index;
+			int newListCount = listOfDynamic.Count;
 			T[] newList = new T[newListCount];
 			if (newListCount == 0) return newList;
 
@@ -22,7 +22,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			var settersArray = new Action<object, object>[fieldCount];
 			foreach (var setter in setters)
 			{
-				if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out index))
+				if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out var index))
 					settersArray[index] = setter.Value;
 			}
 

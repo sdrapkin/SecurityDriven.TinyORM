@@ -72,8 +72,7 @@ namespace SecurityDriven.TinyORM.Helpers
 
 			if (string.IsNullOrEmpty(whereSql))
 			{
-				object id;
-				if (!dict.TryGetValue("Id", out id)) throw new ArgumentException(@"""whereSql"" is empty and object does not contain ""Id"" property.");
+				if (!dict.TryGetValue("Id", out var id)) throw new ArgumentException(@"""whereSql"" is empty and object does not contain ""Id"" property.");
 
 				whereSql = "Id=@w@Id";
 				paramDictAlias.Add("@w@Id", id);
@@ -204,7 +203,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				.Append(sbParams.ToString())
 				.Append(")\nMERGE ")
 				.Append(tableName)
-				.Append(" T USING S ON ")
+				.Append(" WITH (HOLDLOCK) T USING S ON ")
 				.Append(mergeOnSql)
 				.Append("\nWHEN NOT MATCHED THEN\n\tINSERT (")
 				.Append(sbInsertColumns.ToString()).Append(") VALUES (")

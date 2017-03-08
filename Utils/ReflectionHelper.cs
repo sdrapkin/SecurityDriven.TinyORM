@@ -67,8 +67,7 @@ namespace SecurityDriven.TinyORM.Utils
 
 		public static Dictionary<string, Func<object, object>> GetPropertyGetters(Type type)
 		{
-			Dictionary<string, Func<object, object>> dictionary;
-			if (!PropertyGetters.TryGetValue(type, out dictionary))
+			if (!PropertyGetters.TryGetValue(type, out var dictionary))
 			{
 				IEnumerable<PropertyInfo> source = from p in type.GetProperties(propertyBindingFlags)
 												   where p.GetIndexParameters().Length == 0 && !p.ReflectedType.ContainsGenericParameters
@@ -91,8 +90,7 @@ namespace SecurityDriven.TinyORM.Utils
 
 		public static Dictionary<string, Action<object, object>> GetPropertySetters(Type type)
 		{
-			Dictionary<string, Action<object, object>> dictionary;
-			if (!PropertySetters.TryGetValue(type, out dictionary))
+			if (!PropertySetters.TryGetValue(type, out var dictionary))
 			{
 				IEnumerable<PropertyInfo> source = from p in type.GetProperties(propertyBindingFlags)
 												   where p.GetIndexParameters().Length == 0 && !type.IsGenericType
@@ -130,8 +128,7 @@ namespace SecurityDriven.TinyORM.Utils
 
 		public static Dictionary<string, Type> GetPropertyTypes(Type type)
 		{
-			Dictionary<string, Type> dictionary;
-			if (!PropertyTypes.TryGetValue(type, out dictionary))
+			if (!PropertyTypes.TryGetValue(type, out var dictionary))
 			{
 				IEnumerable<PropertyInfo> source = from p in type.GetProperties(propertyBindingFlags)
 												   where p.GetIndexParameters().Length == 0

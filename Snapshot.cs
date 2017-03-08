@@ -33,12 +33,12 @@ namespace SecurityDriven.TinyORM
 
 		Predicate<string> Diff(Dictionary<string, object> propertyMap)
 		{
-			object val; string key;
+			string key;
 
 			var diffSet = new Dictionary<string, bool>(this.propertyMap.Count, Util.FastStringComparer.Instance); // HashSet<T> does not have a "capacity" ctor; Value is ignored
 			foreach (var kvp in this.propertyMap)
 			{
-				if (propertyMap.TryGetValue(key = kvp.Key, out val) && !object.Equals(val, kvp.Value))
+				if (propertyMap.TryGetValue(key = kvp.Key, out var val) && !object.Equals(val, kvp.Value))
 					diffSet.Add(key, default(bool));
 			}
 			return diffSet.Count > 0 ? propertyName => diffSet.ContainsKey(propertyName) : NoDifference;

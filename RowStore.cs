@@ -31,8 +31,7 @@ namespace SecurityDriven.TinyORM
 		{
 			get
 			{
-				int index;
-				if (!TryGetIndex(key, out index))
+				if (!TryGetIndex(key, out var index))
 				{
 					return notFound;
 				}
@@ -41,8 +40,7 @@ namespace SecurityDriven.TinyORM
 			}//get
 			set
 			{
-				int index;
-				if (!TryGetIndex(key, out index))
+				if (!TryGetIndex(key, out var index))
 				{
 					throw new ArgumentException("\"" + key + "\" column is not found.");
 				}
@@ -91,11 +89,10 @@ namespace SecurityDriven.TinyORM
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
 			var result = objectFactory();
 			object val;
-			Action<object, object> setter;
 
 			foreach (var kvp in this.Schema.FieldMap)
 			{
-				if (setters.TryGetValue(kvp.Key, out setter))
+				if (setters.TryGetValue(kvp.Key, out var setter))
 				{
 					val = this[kvp.Key];
 					setter(result, val);
@@ -151,7 +148,7 @@ namespace SecurityDriven.TinyORM
 						optionalPropertyHashSet = new HashSet<string>(optionalProperties, Util.FastStringComparer.Instance);
 					}
 					if (optionalPropertyHashSet.Contains(kvp.Key)) { continue; }
-					THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
+				THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
 				}
 			}
 			return result;

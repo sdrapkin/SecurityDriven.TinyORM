@@ -45,8 +45,7 @@ namespace SecurityDriven.TinyORM
 
 		static void OnTransactionCompleted(object sender, TransactionEventArgs e)
 		{
-			Dictionary<string, ConnectionWrapper> connectionList;
-			if (!transactionConnections.TryRemove(e.Transaction, out connectionList))
+			if (!transactionConnections.TryRemove(e.Transaction, out var connectionList))
 			{
 				return; // should never happen
 			}

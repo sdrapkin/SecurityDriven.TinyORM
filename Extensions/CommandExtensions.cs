@@ -33,8 +33,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			StringType? stringType = null;
 
 			// check if data is DbString
-			DbString dbString = data as DbString;
-			if (dbString != null)
+			if (data is DbString dbString)
 			{
 				data = dbString.Item1;
 				stringType = dbString.Item2;
@@ -44,8 +43,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			}
 
 			// check if data is regular string
-			string stringData = data as string;
-			if (stringData != null)
+			if (data is string stringData)
 			{
 				int lenThreshold = (stringType == StringType.CHAR || stringType == StringType.VARCHAR) ? MAX_ANSI_STRING_LENGTH : MAX_UNICODE_STRING_LENGTH;
 				p.Size = stringData.Length > lenThreshold ? -1 : lenThreshold;
@@ -54,8 +52,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			}
 
 			// check if data is NULL
-			var dataType = data as Type;
-			if (dataType != null)
+			if (data is Type dataType)
 			{
 				p.Value = _boxedDbNullValue;
 				var dbType = typeMap[dataType];

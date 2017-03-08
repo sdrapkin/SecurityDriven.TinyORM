@@ -2,28 +2,28 @@
 
 namespace SecurityDriven.TinyORM.Extensions
 {
-    using DbString = Tuple<string, StringType?>;
+	using DbString = Tuple<string, StringType>;
 
-    public static class StringExtensions
+	public static class StringExtensions
 	{
 		public static DbString NVARCHAR(this string str)
 		{
-			return Tuple.Create(str, (StringType?)StringType.NVARCHAR);
+			return Tuple.Create(str, StringType.NVARCHAR);
 		}
 
 		public static DbString NCHAR(this string str)
 		{
-			return Tuple.Create(str, (StringType?)StringType.NCHAR);
+			return Tuple.Create(str, StringType.NCHAR);
 		}
 
 		public static DbString VARCHAR(this string str)
 		{
-			return Tuple.Create(str, (StringType?)StringType.VARCHAR);
+			return Tuple.Create(str, StringType.VARCHAR);
 		}
 
 		public static DbString CHAR(this string str)
 		{
-			return Tuple.Create(str, (StringType?)StringType.CHAR);
+			return Tuple.Create(str, StringType.CHAR);
 		}
 	}// class StringExtensions
 }//ns

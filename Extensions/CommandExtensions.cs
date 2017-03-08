@@ -9,7 +9,7 @@ namespace SecurityDriven.TinyORM.Extensions
 {
 	using Utils;
 
-	using DbString = Tuple<string, StringType?>;
+	using DbString = Tuple<string, StringType>;
 
 	internal static class CommandExtensions
 	{
@@ -30,22 +30,21 @@ namespace SecurityDriven.TinyORM.Extensions
 		{
 			var p = command.CreateParameter();
 			p.ParameterName = parameterName;
-			StringType? stringType = null;
+
+			var stringType = StringType.NVARCHAR;
 
 			// check if data is DbString
 			if (data is DbString dbString)
 			{
 				data = dbString.Item1;
 				stringType = dbString.Item2;
-
-				if (stringType != null)
-					p.DbType = (DbType)stringType;
+				p.DbType = (DbType)stringType;
 			}
 
 			// check if data is regular string
 			if (data is string stringData)
 			{
-				int lenThreshold = (stringType == StringType.CHAR || stringType == StringType.VARCHAR) ? MAX_ANSI_STRING_LENGTH : MAX_UNICODE_STRING_LENGTH;
+				int lenThreshold = (stringType == StringType.VARCHAR || stringType == StringType.CHAR) ? MAX_ANSI_STRING_LENGTH : MAX_UNICODE_STRING_LENGTH;
 				p.Size = stringData.Length > lenThreshold ? -1 : lenThreshold;
 				p.Value = data;
 				return p;

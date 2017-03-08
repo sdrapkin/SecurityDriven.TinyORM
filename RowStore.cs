@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+
 namespace SecurityDriven.TinyORM
 {
 	using Utils;
@@ -94,31 +94,6 @@ namespace SecurityDriven.TinyORM
 			}
 			return result;
 		}// ToObject<T>()
-
-#if old_implementation
-		static T[] ToObjectArray<T>(IReadOnlyList<dynamic> listOfDynamic) where T : class, new()
-		{
-			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			var newListCount = listOfDynamic.Count;
-			var newList = new T[newListCount];
-
-			Parallel.For(0, newListCount, i =>
-			{
-				var objT = New<T>.Instance();//new T();
-				newList[i] = objT;
-				var row = (RowStore)listOfDynamic[i];
-				foreach (var kvp in setters)
-				{
-					var objValue = row[kvp.Key];
-					if (!(objValue is FieldNotFound))
-					{
-						kvp.Value(objT, objValue);
-					}
-				}
-			});
-			return newList;
-		}// ToObjectArray<T>()
-#endif
 
 		/// <summary>
 		/// Converts RowStore into an instance of T, and checks existence of all required (non-optional) properties. Failed checks throw an exception.

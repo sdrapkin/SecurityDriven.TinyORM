@@ -8,6 +8,8 @@ namespace SecurityDriven.TinyORM.Extensions
 
 	public static class DynamicListExtensions
 	{
+		static readonly ParallelOptions s_ParallelOptions = new ParallelOptions { TaskScheduler = TaskScheduler.Default };
+
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
@@ -26,7 +28,7 @@ namespace SecurityDriven.TinyORM.Extensions
 					settersArray[index] = setter.Value;
 			}
 
-			Parallel.For(0, newListCount, new ParallelOptions { TaskScheduler = TaskScheduler.Default }, i =>
+			Parallel.For(0, newListCount, s_ParallelOptions, i =>
 			{
 				T objT = objectFactory();
 				newList[i] = objT;

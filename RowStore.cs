@@ -49,13 +49,7 @@ namespace SecurityDriven.TinyORM
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		bool TryGetIndex(string key, out int index)
-		{
-			if (this.Schema.FieldMap.TryGetValue(key, out index))
-				return true;
-
-			return false;
-		}// TryGetIndex()
+		bool TryGetIndex(string key, out int index) => this.Schema.FieldMap.TryGetValue(key, out index);
 
 		public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
 		{

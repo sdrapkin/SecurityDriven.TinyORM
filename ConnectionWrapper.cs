@@ -1,15 +1,24 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace SecurityDriven.TinyORM
 {
 	internal class ConnectionWrapper : IDisposable
 	{
-		public SqlConnection Connection { get { return connection; } private set { this.connection = value; } }
+		public SqlConnection Connection
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get { return connection; }
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			private set { this.connection = value; }
+		}
+
 		SqlConnection connection;
 		int refCount = 1;
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ConnectionWrapper(SqlConnection connection) { this.connection = connection; }//ctor
 
 		#region IDisposable Members
@@ -31,6 +40,7 @@ namespace SecurityDriven.TinyORM
 		}//Dispose()
 		#endregion
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ConnectionWrapper AddRef()
 		{
 			Interlocked.Increment(ref refCount);

@@ -287,6 +287,7 @@ namespace SecurityDriven.TinyORM
 		/// <param name="scopeOption">An instance of the TransactionScopeOption enumeration that describes the transaction requirements associated with this transaction scope.</param>
 		/// <param name="transactionOptions">A TransactionOptions structure that describes the transaction options to use if a new transaction is created. If an existing transaction is used, the timeout value in this parameter applies to the transaction scope. If that time expires before the scope is disposed, the transaction is aborted.</param>
 		/// <returns>A new TransactionScope.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption, TransactionOptions transactionOptions)
 		{
 			var current_ts = Transaction.Current;

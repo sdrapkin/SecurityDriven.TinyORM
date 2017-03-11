@@ -24,17 +24,18 @@ namespace SecurityDriven.TinyORM
 
 			Dictionary<string, ConnectionWrapper> wrappedConnectionList;
 			ConnectionWrapper wrappedConnection;
-			int additionCount = 0;
 
-			wrappedConnectionList = transactionConnections.GetOrAdd(currentTransaction, GetNewConnectionCache(ref additionCount));
-			if (additionCount > 0)
-			{
-				currentTransaction.TransactionCompleted += OnTransactionCompleted;
-			}
+			wrappedConnectionList = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: GetNewConnectionCache);
 
 			lock (wrappedConnectionList)
 			{
-				if (!wrappedConnectionList.TryGetValue(db.connectionString, out wrappedConnection))
+				bool isEmpty = wrappedConnectionList.Count == 0;
+				if (isEmpty)
+				{
+					currentTransaction.TransactionCompleted += OnTransactionCompleted;
+				}
+
+				if (isEmpty || !wrappedConnectionList.TryGetValue(db.connectionString, out wrappedConnection))
 				{
 					wrappedConnection = db.GetNewWrappedConnection();
 					wrappedConnectionList.Add(db.connectionString, wrappedConnection);
@@ -50,7 +51,7 @@ namespace SecurityDriven.TinyORM
 				return; // should never happen
 			}
 
-			lock (connectionList)
+			//lock (connectionList)
 			{
 				foreach (var kvp in connectionList)
 				{
@@ -64,10 +65,9 @@ namespace SecurityDriven.TinyORM
 		}// OnTransactionCompleted()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static Dictionary<string, ConnectionWrapper> GetNewConnectionCache(ref int count)
+		static Dictionary<string, ConnectionWrapper> GetNewConnectionCache(Transaction transaction)
 		{
-			Interlocked.Increment(ref count);
-			return new Dictionary<string, ConnectionWrapper>(1, Util.FastStringComparer.Instance);
+			return new Dictionary<string, ConnectionWrapper>(capacity: 1, comparer: Util.FastStringComparer.Instance);
 		}// GetNewConnectionCache()
 	}// class ConnectionCache
 }//ns

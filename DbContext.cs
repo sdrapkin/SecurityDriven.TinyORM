@@ -137,8 +137,7 @@ namespace SecurityDriven.TinyORM
 
 			if (batchSize == 0) batchSize = this.BatchSize;
 
-			var callerIdentity = this.CallerIdentityDelegate();
-			bool isAnonymous = callerIdentity.UserId == CallerIdentity.Anonymous.UserId;
+			var callerIdentity = callerIdentityDelegate();
 
 			var batches = queryBatch.queryList.GroupBy(_ =>
 			{
@@ -164,7 +163,7 @@ namespace SecurityDriven.TinyORM
 									command.SetupParameters(element.Item2, element.Item3);
 								}
 
-								command.SetupMetaParameters(callerIdentity.GetBytes(), callerMemberName, callerFilePath, callerLineNumber);
+								command.SetupMetaParameters(callerIdentity.UserIdAsBytes, callerMemberName, callerFilePath, callerLineNumber);
 								sqlCommandSetWrapper.Append(command);
 							}//element loop
 
@@ -212,7 +211,7 @@ namespace SecurityDriven.TinyORM
 
 					using (var comm = new SqlCommand(null, conn))
 					{
-						comm.Setup(sql, param, CallerIdentityDelegate().GetBytes(), commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
 						{
 							var result = await FetchResultSets(reader, cancellationToken).ConfigureAwait(false);
@@ -343,7 +342,7 @@ namespace SecurityDriven.TinyORM
 
 					using (var comm = new SqlCommand(null, conn))
 					{
-						comm.Setup(sql, param, CallerIdentityDelegate().GetBytes(), commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 						{
 							await actionAsync(reader, cancellationToken).ConfigureAwait(false);

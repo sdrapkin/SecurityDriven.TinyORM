@@ -14,13 +14,14 @@ namespace SecurityDriven.TinyORM
 		/// Initializes a new instance of the <see cref="CallerIdentity"/> class.
 		/// </summary>
 		/// <param name="userId">The user id.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public CallerIdentity(Guid userId)
 		{
 			this.UserId = userId;
 		}//ctor
 
 		Guid userId;
-		internal byte[] userIdAsBytes;
+		internal byte[] UserIdAsBytes;
 		/// <summary>
 		/// Gets the user id.
 		/// </summary>
@@ -36,9 +37,9 @@ namespace SecurityDriven.TinyORM
 			{
 				userId = value;
 				if (value == Guid.Empty)
-					userIdAsBytes = Util.ZeroLengthArray<byte>.Value;
+					UserIdAsBytes = Util.ZeroLengthArray<byte>.Value;
 				else
-					userIdAsBytes = value.ToByteArray();
+					UserIdAsBytes = value.ToByteArray();
 			}
 		}//UserId
 
@@ -50,13 +51,4 @@ namespace SecurityDriven.TinyORM
 
 		static CallerIdentity anonymousIdentity = new CallerIdentity(Guid.Empty);
 	}// class CallerIdentity
-
-	static class CallerIdentityExtensions
-	{
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte[] GetBytes(this CallerIdentity ci)
-		{
-			return ci.userIdAsBytes;
-		}
-	}//class CallerIdentityExtensions
 }//ns

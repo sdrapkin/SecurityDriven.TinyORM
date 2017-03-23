@@ -13,15 +13,16 @@ namespace SecurityDriven.TinyORM.Extensions
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
-			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			int newListCount = listOfDynamic.Count;
+			var listOfRowStore = listOfDynamic as IReadOnlyList<RowStore>;
+			int newListCount = listOfRowStore.Count;
 			T[] newList = new T[newListCount];
 			if (newListCount == 0) return newList;
 
-			RowStore firstElement = (RowStore)listOfDynamic[0];
+			RowStore firstElement = listOfRowStore[0];
 			int fieldCount = firstElement.RowValues.Length;
 
 			var settersArray = new Action<object, object>[fieldCount];
+			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
 			foreach (var setter in setters)
 			{
 				if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out var index))
@@ -32,7 +33,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			{
 				T objT = objectFactory();
 				newList[i] = objT;
-				object[] rowValues = ((RowStore)listOfDynamic[i]).RowValues;
+				object[] rowValues = (listOfRowStore[i]).RowValues;
 				Action<object, object> setter;
 				for (int j = 0; j < rowValues.Length; ++j)
 				{
@@ -46,5 +47,20 @@ namespace SecurityDriven.TinyORM.Extensions
 			});
 			return newList;
 		}// ToObjectArray<T>()
+
+		/// <summary>Converts a List of dynamic objects into an array of T-objects using provided object factory. Parallelized.</summary>
+		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<dynamic, T> objectFactory)
+		{
+			var listOfObject = listOfDynamic as IReadOnlyList<object>;
+			int newListCount = listOfObject.Count;
+			T[] newList = new T[newListCount];
+			if (newListCount == 0) return newList;
+
+			Parallel.For(0, newListCount, s_ParallelOptions, i =>
+			{
+				newList[i] = objectFactory(listOfObject[i]);
+			});
+			return newList;
+		}//ToObjectArray<T>
 	}// class DynamicListExtensions
 }//ns

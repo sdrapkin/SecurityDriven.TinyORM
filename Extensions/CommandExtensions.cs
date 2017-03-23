@@ -24,8 +24,6 @@ namespace SecurityDriven.TinyORM.Extensions
 			SetParameters(command, objPropertyValueDictionary);
 		}// SetParameters()
 
-		static readonly object _boxedDbNullValue = DBNull.Value;
-
 		static IDbDataParameter GenerateParameter(SqlCommand command, string parameterName, object data)
 		{
 			var p = command.CreateParameter();
@@ -53,7 +51,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			// check if data is NULL
 			if (data is Type dataType)
 			{
-				p.Value = _boxedDbNullValue;
+				p.Value = null;
 				var dbType = typeMap[dataType];
 				p.DbType = dbType;
 				if (dbType == DbType.Binary)
@@ -70,7 +68,7 @@ namespace SecurityDriven.TinyORM.Extensions
 				return p;
 			}
 
-			p.Value = data ?? _boxedDbNullValue;
+			p.Value = data;
 			return p;
 		}// GenerateParameter()
 

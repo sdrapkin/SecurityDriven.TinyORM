@@ -22,10 +22,8 @@ namespace SecurityDriven.TinyORM
 				throw new TransactionAbortedException("GetTransactionLinkedConnection() called on an already-aborted transaction.");
 			}
 
-			Dictionary<string, ConnectionWrapper> wrappedConnectionList;
 			ConnectionWrapper wrappedConnection;
-
-			wrappedConnectionList = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: GetNewConnectionCache);
+			var wrappedConnectionList = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: GetNewConnectionCache);
 
 			lock (wrappedConnectionList)
 			{
@@ -41,7 +39,9 @@ namespace SecurityDriven.TinyORM
 					wrappedConnectionList.Add(db.connectionString, wrappedConnection);
 				}
 			}//lock
-			return wrappedConnection.AddRef();
+
+			wrappedConnection.IncrementUseCount();
+			return wrappedConnection;
 		}// GetTransactionLinkedConnection()
 
 		static void OnTransactionCompleted(object sender, TransactionEventArgs e)

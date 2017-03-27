@@ -41,10 +41,9 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ConnectionWrapper AddRef()
+		public void IncrementUseCount()
 		{
 			Interlocked.Increment(ref refCount);
-			return this;
 		}//AddRef()
 	}//class ConnectionWrapper
 }//ns

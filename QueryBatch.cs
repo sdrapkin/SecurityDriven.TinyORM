@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace SecurityDriven.TinyORM
 {
@@ -7,6 +8,11 @@ namespace SecurityDriven.TinyORM
 
 	public class QueryBatch
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static QueryBatch CreateQueryBatch() => new QueryBatch();
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static QueryBatch CreateQueryBatch(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
+
 		internal QueryBatch() { }
 
 		internal List<NameValueTypeTuple> queryList = new List<NameValueTypeTuple>();

@@ -20,7 +20,7 @@ namespace SecurityDriven.TinyORM.Helpers
 
 		#region Insert<T>()
 
-		public static QueryInfo Insert<T>(T obj, Predicate<string> propFilter = null, string tableName = null) where T : class
+		public static QueryInfo Insert<T>(T obj, Predicate<string> excludedProperties = null, string tableName = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			var dict = ObjectFactory.ObjectToDictionary(obj);
@@ -35,7 +35,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			foreach (var kvp in dict)
 			{
 				currentKey = kvp.Key;
-				if (propFilter != null && !propFilter(currentKey))
+				if (excludedProperties != null && !excludedProperties(currentKey))
 					continue;
 
 				if (i++ != 0)
@@ -58,15 +58,15 @@ namespace SecurityDriven.TinyORM.Helpers
 		#region Update<T, TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryInfo Update<T>(T obj, string whereSql = null, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
+		public static QueryInfo Update<T>(T obj, string whereSql = null, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
 		{
-			return Update<T, string>(obj: obj, whereSql: whereSql, whereParam: null, propFilter: propFilter, tableName: tableName, dict: dict);
+			return Update<T, string>(obj: obj, whereSql: whereSql, whereParam: null, excludedProperties: excludedProperties, tableName: tableName, dict: dict);
 		}// Update<T>
 
-		public static QueryInfo Update<T, TParamType>(T obj, string whereSql = null, TParamType whereParam = null, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class where TParamType : class
+		public static QueryInfo Update<T, TParamType>(T obj, string whereSql = null, TParamType whereParam = null, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class where TParamType : class
 		{
 			if (dict == null) dict = ObjectFactory.ObjectToDictionary(obj);
-			QueryInfo queryInfo = UpdateRaw<T>(obj, propFilter, tableName, dict);
+			QueryInfo queryInfo = UpdateRaw<T>(obj, excludedProperties, tableName, dict);
 			var paramDictAlias = queryInfo.ParameterMap;
 			var whereParamMap = default(Dictionary<string, object>);
 
@@ -90,7 +90,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		#endregion
 
 		#region UpdateRaw<T>()
-		internal static QueryInfo UpdateRaw<T>(T obj, Predicate<string> propFilter = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
+		internal static QueryInfo UpdateRaw<T>(T obj, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			if (dict == null) dict = ObjectFactory.ObjectToDictionary(obj);
@@ -104,7 +104,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			foreach (var kvp in dict)
 			{
 				currentKey = kvp.Key;
-				if (propFilter != null && !propFilter(currentKey))
+				if (excludedProperties != null && !excludedProperties(currentKey))
 					continue;
 
 				if (i++ != 0)
@@ -116,7 +116,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				dictNew.Add(paramName, kvp.Value);
 			}//foreach
 
-			if (i == 0) throw new ArgumentException("propFilter predicate is false for all property names.", "propFilter");
+			if (i == 0) throw new ArgumentException($"{nameof(excludedProperties)} predicate is false for all property names.", nameof(excludedProperties));
 			var result = new QueryInfo { SQL = sb.ToString(), ParameterMap = dictNew };
 			return result;
 		}// UpdateRaw<T>()
@@ -144,10 +144,10 @@ namespace SecurityDriven.TinyORM.Helpers
 		#endregion
 
 		#region Upsert<T>
-		public static QueryInfo Upsert<T>(T obj, string tableName = null, Predicate<string> insertPropFilter = null, Predicate<string> updatePropFilter = null, string mergeOnSql = null) where T : class
+		public static QueryInfo Upsert<T>(T obj, string tableName = null, Predicate<string> excludedInsertProperties = null, Predicate<string> includedUpdateProperties = null, string mergeOnSql = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
-			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id";
+			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id"; // "S" is source; "T" is target
 			var dict = ObjectFactory.ObjectToDictionary(obj);
 			var dictCount = dict.Count;
 			var dictParams = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
@@ -177,7 +177,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				sbParams.Append(paramName);
 				dictParams.Add(paramName, kvp.Value);
 
-				if (insertPropFilter == null || insertPropFilter(currentKey))
+				if (excludedInsertProperties == null || !excludedInsertProperties(currentKey))
 				{
 					if (insertColumnCount++ > 0)
 					{
@@ -188,7 +188,7 @@ namespace SecurityDriven.TinyORM.Helpers
 					sbInsertValues.Append(paramName);
 				}
 
-				if (updatePropFilter == null || updatePropFilter(currentKey))
+				if (includedUpdateProperties == null || includedUpdateProperties(currentKey))
 				{
 					if (updateColumnCount++ > 0)
 					{

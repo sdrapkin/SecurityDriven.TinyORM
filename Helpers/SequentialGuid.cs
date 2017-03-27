@@ -118,12 +118,14 @@ namespace SecurityDriven.TinyORM.Helpers
 		#endregion
 
 		// https://tools.ietf.org/html/rfc4122 UUID zero-tick starts on 1582-October-15 (Gregorian reform to the Christian calendar)
-		static readonly long UuidStartTicks = new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks;
+		static readonly long UuidStartTicks = new DateTime(1582, 10, 15, 0, 0, 1, 1, DateTimeKind.Utc).Ticks;
 		public static DateTime ExtractDateTimeUtc(this Guid g)
 		{
 			var guidStruct = new GuidStruct { Value = g };
 			var longStruct = new LongStruct
 			{
+				B2 = guidStruct.BF,
+				B3 = guidStruct.BE,
 				B4 = guidStruct.BD,
 				B5 = guidStruct.BC,
 				B6 = guidStruct.BB,

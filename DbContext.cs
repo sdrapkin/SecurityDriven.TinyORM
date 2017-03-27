@@ -183,13 +183,6 @@ namespace SecurityDriven.TinyORM
 		}// CommitQueryBatchAsync()
 		#endregion
 
-		#region CreateQueryBatch()
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryBatch CreateQueryBatch() => new QueryBatch();
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryBatch CreateQueryBatch(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
-		#endregion
-
 		#region InternalQueryAsync()
 		async Task<IReadOnlyList<IReadOnlyList<dynamic>>> InternalQueryAsync<TParamType>(
 			string sql,

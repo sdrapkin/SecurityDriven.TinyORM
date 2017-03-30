@@ -23,8 +23,7 @@ namespace SecurityDriven.TinyORM
 
 		public static QueryInfo CreateQueryInfo<TParamType>(string sql, TParamType param) where TParamType : class
 		{
-			var queryInfo = new QueryInfo();
-			queryInfo.SQL = sql;
+			var queryInfo = new QueryInfo() { SQL = sql };
 			if (param == null)
 			{
 				queryInfo.ParameterMap = new Dictionary<string, object>(0);

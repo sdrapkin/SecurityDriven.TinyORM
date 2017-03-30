@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace SecurityDriven.TinyORM.Utils
 {
@@ -16,25 +17,30 @@ namespace SecurityDriven.TinyORM.Utils
 		static readonly ConstructorInfo s_dictionaryCtor = typeof(Dictionary<string, object>).GetConstructor(new[] { typeof(int), typeof(StringComparer) });
 		static readonly MethodInfo s_dictionaryAddMethod = typeof(Dictionary<string, object>).GetMethod("Add");
 		static readonly ConstantExpression s_nullExpression = Expression.Constant(null);
+		static readonly Type s_objectType = typeof(object);
 
-		public static Dictionary<string, object> ObjectToDictionary<T>(T obj, bool parameterize = false) where T : class
-		{
-			return ObjectToDictionary(obj, typeof(T), parameterize);
-		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Dictionary<string, object> ObjectToDictionary<T>(T obj, bool parameterize = false) where T : class => ObjectToDictionary(obj, typeof(T), parameterize);
 
 		public static Dictionary<string, object> ObjectToDictionary(object obj, Type objType, bool parameterize = false)
 		{
 			if (obj == null) return new Dictionary<string, object>(0, Util.FastStringComparer.Instance);
-			if (parameterize) return s_type2DictionaryBuilderMap_parameterized.GetOrAdd(objType, (type) => { return MakeToDictionaryFunc(type, parameterize: true); })(obj);
+			if (parameterize) return s_type2DictionaryBuilderMap_parameterized.GetOrAdd(objType, MakeToDictionaryParameterizedTrueFunc)(obj);
 
-			return s_type2DictionaryBuilderMap.GetOrAdd(objType, (type) => { return MakeToDictionaryFunc(type, parameterize: false); })(obj);
+			return s_type2DictionaryBuilderMap.GetOrAdd(objType, MakeToDictionaryParameterizedFalseFunc)(obj);
 		}
 
 		static readonly ConstantExpression fastStringComparerExpression = Expression.Constant(Util.FastStringComparer.Instance);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static Func<object, Dictionary<string, object>> MakeToDictionaryParameterizedFalseFunc(Type type) => MakeToDictionaryFunc(type, parameterize: false);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static Func<object, Dictionary<string, object>> MakeToDictionaryParameterizedTrueFunc(Type type) => MakeToDictionaryFunc(type, parameterize: true);
+
 		static Func<object, Dictionary<string, object>> MakeToDictionaryFunc(Type type, bool parameterize)
 		{
-			var param = Expression.Parameter(TypeConstants.ObjectType);
+			var param = Expression.Parameter(s_objectType);
 			var typed = Expression.Variable(type);
 
 			var elementInitList = GetElementInitsForType(type, typed, parameterize);
@@ -60,9 +66,9 @@ namespace SecurityDriven.TinyORM.Utils
 
 		static ElementInit PropertyToElementInit(PropertyInfo propertyInfo, Expression instance, bool parameterize)
 		{
-			var val = Expression.Convert(Expression.Property(instance, propertyInfo), TypeConstants.ObjectType);
+			var val = Expression.Convert(Expression.Property(instance, propertyInfo), s_objectType);
 			var eq = Expression.ReferenceNotEqual(val, s_nullExpression);
-			var condition = Expression.Condition(eq, val, Expression.Convert(Expression.Constant(propertyInfo.PropertyType), TypeConstants.ObjectType));
+			var condition = Expression.Condition(eq, val, Expression.Convert(Expression.Constant(propertyInfo.PropertyType), s_objectType));
 
 			return Expression.ElementInit(s_dictionaryAddMethod,
 				Expression.Constant(parameterize ? "@" + propertyInfo.Name : propertyInfo.Name),

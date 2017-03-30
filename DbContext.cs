@@ -291,13 +291,13 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region CallerIdentity
-
-		Func<CallerIdentity> callerIdentityDelegate = () => CallerIdentity.Anonymous;
+		static readonly Func<CallerIdentity> anonymousCallerIdentityDelegate = () => CallerIdentity.Anonymous;
+		Func<CallerIdentity> callerIdentityDelegate = anonymousCallerIdentityDelegate;
 		public Func<CallerIdentity> CallerIdentityDelegate { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return this.callerIdentityDelegate; } }
 
 		public void SetCallerIdentityDelegate(Func<CallerIdentity> newCallerIdentityDelegate)
 		{
-			if (newCallerIdentityDelegate == null) throw new ArgumentNullException("callerIdentityDelegate");
+			if (newCallerIdentityDelegate == null) throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
 			Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
 		}// SetCallerIdentityDelegate()
 		#endregion
@@ -310,7 +310,7 @@ namespace SecurityDriven.TinyORM
 		internal ConnectionWrapper GetNewWrappedConnection() => new ConnectionWrapper(CreateNewConnection());
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		SqlConnection CreateNewConnection() => new SqlConnection(this.connectionString);
+		SqlConnection CreateNewConnection() => new SqlConnection(this.connectionString, null);
 		#endregion
 
 		#region SequentialReaderAsync()

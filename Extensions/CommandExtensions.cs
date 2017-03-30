@@ -24,11 +24,9 @@ namespace SecurityDriven.TinyORM.Extensions
 			SetParameters(command, objPropertyValueDictionary);
 		}// SetParameters()
 
-		static IDbDataParameter GenerateParameter(SqlCommand command, string parameterName, object data)
+		static SqlParameter GenerateParameter(string parameterName, object data)
 		{
-			var p = command.CreateParameter();
-			p.ParameterName = parameterName;
-
+			var p = new SqlParameter() { ParameterName = parameterName };
 			var stringType = StringType.NVARCHAR;
 
 			// check if data is DbString
@@ -89,20 +87,20 @@ namespace SecurityDriven.TinyORM.Extensions
 					propValue = kvp.Value;
 					propValueEnumerable = propValue as IEnumerable;
 
-					if (!(propValue is string) && propValueEnumerable != null && !(propValue is byte[]))
+					if (propValueEnumerable != null && !(propValue is string) && !(propValue is byte[]))
 					{
 						count = 0;
-						if (propName[0] != '@') propName = '@' + propName;
+						//if (propName[0] != '@') propName = '@' + propName;
 						foreach (var item in propValueEnumerable)
 						{
 							++count;
-							paramCol.Add(GenerateParameter(command, parameterName: propName + count.IntToString(), data: item));
+							paramCol.Add(GenerateParameter(parameterName: propName + count.IntToString(), data: item));
 						}
 						command.CommandText = command.CommandText.Replace(propName, count == 0 ? "SELECT 1 WHERE 1=0" : GetParamString(count, propName));
 					}
 					else
 					{
-						paramCol.Add(GenerateParameter(command, parameterName: propName, data: propValue));
+						paramCol.Add(GenerateParameter(parameterName: propName, data: propValue));
 					}
 				}// foreach over property dictionary
 			}// if dictionary count > 0
@@ -144,20 +142,23 @@ namespace SecurityDriven.TinyORM.Extensions
 		{
 			// CONTEXT parameter
 			{
-				var callerIdentityContextParameter = new SqlParameter(CTX_PARAMETER_NAME, SqlDbType.Binary, 16);
-				callerIdentityContextParameter.Value = callerIdentity;
+				var callerIdentityContextParameter = new SqlParameter(CTX_PARAMETER_NAME, SqlDbType.Binary, 16) { Value = callerIdentity };
 				command.Parameters.Add(callerIdentityContextParameter);
 			}
 			// CODETRACE parameter
 			{
-				var codetraceParameter = new SqlParameter(CT_PARAMETER_NAME, SqlDbType.VarChar, MAX_ANSI_STRING_LENGTH);
-				codetraceParameter.Value = MakeCodeTraceString(callerMemberName, callerFilePath, callerLineNumber);
+				var codetraceParameter = new SqlParameter(CT_PARAMETER_NAME, SqlDbType.VarChar, MAX_ANSI_STRING_LENGTH)
+				{
+					Value = MakeCodeTraceString(callerMemberName, callerFilePath, callerLineNumber)
+				};
 				command.Parameters.Add(codetraceParameter);
 			}
 			// CONTEXT_INFO parameter
 			{
-				var ciParameter = new SqlParameter(CI_PARAMETER_NAME, SqlDbType.VarBinary, MAX_CONTEXT_INFO_LENGTH);
-				ciParameter.Value = Util.ZeroLengthArray<byte>.Value;
+				var ciParameter = new SqlParameter(CI_PARAMETER_NAME, SqlDbType.VarBinary, MAX_CONTEXT_INFO_LENGTH)
+				{
+					Value = Util.ZeroLengthArray<byte>.Value
+				};
 				command.Parameters.Add(ciParameter);
 			}
 		}// SetupMetaParameters()

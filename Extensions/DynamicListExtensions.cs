@@ -16,7 +16,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
-			var listOfRowStore = listOfDynamic as IReadOnlyList<RowStore>;
+			var listOfRowStore = (IReadOnlyList<RowStore>)listOfDynamic;
 			int newListCount = listOfRowStore.Count;
 			T[] newList = new T[newListCount];
 			if (newListCount == 0) return newList;
@@ -54,7 +54,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		/// <summary>Converts a List of dynamic objects into an array of T-objects using a provided object mapper. Parallelized.</summary>
 		public static T[] ToMappedObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<dynamic, T> objectMapper)
 		{
-			var listOfObject = listOfDynamic as IReadOnlyList<object>;
+			var listOfObject = (IReadOnlyList<object>)listOfDynamic;
 			int newListCount = listOfObject.Count;
 			T[] newList = new T[newListCount];
 			if (newListCount == 0) return newList;

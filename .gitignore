@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # Keys
 *.snk
+
+# Backups
+*.rar

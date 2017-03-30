@@ -29,43 +29,45 @@ namespace SecurityDriven.TinyORM.Extensions
 			var p = new SqlParameter() { ParameterName = parameterName };
 			var stringType = StringType.NVARCHAR;
 
-			// check if data is DbString
-			if (data is DbString dbString)
+			if (data is ValueType)
 			{
-				data = dbString.Item1;
-				stringType = dbString.Item2;
-				p.DbType = (DbType)stringType;
+				// if data is DateTime, switch to higher precision of DateTime2
+				if (data is DateTime)
+				{
+					p.DbType = DbType.DateTime2;
+					p.Value = data;
+					return p;
+				}
 			}
-
-			// check if data is regular string
-			if (data is string stringData)
+			else
 			{
-				int lenThreshold = (stringType == StringType.VARCHAR || stringType == StringType.CHAR) ? MAX_ANSI_STRING_LENGTH : MAX_UNICODE_STRING_LENGTH;
-				p.Size = stringData.Length > lenThreshold ? -1 : lenThreshold;
-				p.Value = data;
-				return p;
-			}
+				// check if data is DbString
+				if (data is DbString dbString)
+				{
+					data = dbString.Item1;
+					stringType = dbString.Item2;
+					p.DbType = (DbType)stringType;
+				}
 
-			// check if data is NULL
-			if (data is Type dataType)
-			{
-				p.Value = null;
-				var dbType = typeMap[dataType];
-				p.DbType = dbType;
-				if (dbType == DbType.Binary)
-					p.Size = -1;
+				// check if data is regular string
+				if (data is string dataString)
+				{
+					int lenThreshold = (stringType == StringType.VARCHAR || stringType == StringType.CHAR) ? MAX_ANSI_STRING_LENGTH : MAX_UNICODE_STRING_LENGTH;
+					p.Size = dataString.Length > lenThreshold ? -1 : lenThreshold;
+					p.Value = data;
+					return p;
+				}
 
-				return p;
-			}
-
-			// if data is DateTime, switch to higher precision of DateTime2
-			if (data is DateTime)
-			{
-				p.DbType = DbType.DateTime2;
-				p.Value = data;
-				return p;
-			}
-
+				// check if data is NULL
+				if (data is Type dataType)
+				{
+					var dbType = typeMap[dataType];
+					p.DbType = dbType;
+					if (dbType == DbType.Binary) p.Size = -1;
+					p.Value = DBNull.Value;
+					return p;
+				}
+			}// data is not a struct
 			p.Value = data;
 			return p;
 		}// GenerateParameter()

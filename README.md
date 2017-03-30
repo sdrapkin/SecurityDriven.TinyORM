@@ -6,7 +6,7 @@
 1.  Focused on **SQL Server** (any `SqlClient`-based db engine).
 2.  **Intuitive, tiny, simple API**. This is usually the hardest part for libraries to get right.
 3.  **Does not obscure or reinvent `T-SQL`**. If you prefer APIs that hide `T-SQL` incompetence, [gtfo](https://en.wikipedia.org/wiki/Entity_Framework).
-4.  **Very fast.** As fast as competition (`Dapper`, `OrmLite`, `PetaPoco`, `Linq2Sql`, etc. [benchmarks](https://gist.github.com/anonymous/86fdb2130071dbdad8211007346f3f96)). 
+4.  **Very fast.** As fast as competition (`Dapper`, `OrmLite`, `PetaPoco`, `Linq2Sql`, etc. [benchmarks](https://gist.github.com/anonymous/75fd2313500e82556eed050c5bf6374b)). 
 5.  **Seamlessly transactional** and safe. Transactions are not merely supported - they are the default. Custom transaction scopes are declared via standard `TransactionScope` instance (created via `TinyORM`.`DbContext`.`CreateTransactionScope()` factory).
 6.  **Transparent connection management**. One less thing to worry about and screw up. Never think about connections again.
 7.  `Task`-based `async` API (ie. *the* API). All calls are buffered (focus on safety and fast connection release).

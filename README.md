@@ -2,6 +2,8 @@
 
 **TinyORM** by [Stan Drapkin](https://github.com/sdrapkin "Stan Drapkin") [sdrapkin at sdprime dot com]
 
+## [Documentation](https://github.com/sdrapkin/SecurityDriven.TinyORM/wiki): [wiki](https://github.com/sdrapkin/SecurityDriven.TinyORM/wiki) ##
+
 ## Features: ##
 1.  Focused on **SQL Server** (any `SqlClient`-based db engine).
 2.  **Intuitive, tiny, simple API**. This is usually the hardest part for libraries to get right.

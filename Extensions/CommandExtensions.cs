@@ -13,11 +13,10 @@ namespace SecurityDriven.TinyORM.Extensions
 
 	internal static class CommandExtensions
 	{
-		static void SetParameters<T>(this SqlCommand command, T obj) where T : class
-		{
-			SetParameters(command, obj, typeof(T));
-		}// SetParameters<T>()
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static void SetParameters<T>(this SqlCommand command, T obj) where T : class => SetParameters(command, obj, typeof(T));
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void SetParameters(this SqlCommand command, object obj, Type objType)
 		{
 			var objPropertyValueDictionary = ObjectFactory.ObjectToDictionary(obj, objType, parameterize: true);

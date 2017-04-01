@@ -97,7 +97,7 @@ namespace SecurityDriven.TinyORM.Extensions
 							++count;
 							paramCol.Add(GenerateParameter(parameterName: propName + count.IntToString(), data: item));
 						}
-						command.CommandText = command.CommandText.Replace(propName, count == 0 ? "SELECT 1 WHERE 1=0" : GetParamString(count, propName));
+						command.CommandText = command.CommandText.Replace(propName, count == 0 ? "SELECT TOP 0 0" : GetParamString(count, propName));
 					}
 					else
 					{

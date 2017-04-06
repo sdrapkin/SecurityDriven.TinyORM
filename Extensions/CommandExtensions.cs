@@ -66,6 +66,14 @@ namespace SecurityDriven.TinyORM.Extensions
 					p.Value = DBNull.Value;
 					return p;
 				}
+
+				if (data is DataTable dataTable)
+				{
+					p.SqlDbType = SqlDbType.Structured;
+					p.TypeName = dataTable.TableName;
+					p.Value = dataTable;
+					return p;
+				}
 			}// data is not a struct
 			p.Value = data;
 			return p;

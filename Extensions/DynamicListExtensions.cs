@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace SecurityDriven.TinyORM.Extensions
@@ -65,6 +66,25 @@ namespace SecurityDriven.TinyORM.Extensions
 			});
 			return newList;
 		}//ToMappedObjectArray<T>
+
+		/// <summary>Converts any Array or List of T into a single-column named TVP.</summary>
+		public static DataTable AsTVP<T>(this IReadOnlyList<T> list, string tvpName)
+		{
+			var dataTable = new DataTable(tvpName);
+			dataTable.Columns.Add();
+
+			var rows = dataTable.Rows;
+			var paramsContainer = new object[1];
+			ref var val = ref paramsContainer[0];
+			var count = list.Count;
+
+			for (int i = 0; i < count; ++i)
+			{
+				val = list[i];
+				rows.Add(paramsContainer);
+			}
+			return dataTable;
+		}//AsTVP<T>
 
 		#region Deconstructors
 		///<summary>Deconstructor.</summary>

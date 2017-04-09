@@ -293,13 +293,18 @@ namespace SecurityDriven.TinyORM
 		#region CallerIdentity
 		static readonly Func<CallerIdentity> anonymousCallerIdentityDelegate = () => CallerIdentity.Anonymous;
 		Func<CallerIdentity> callerIdentityDelegate = anonymousCallerIdentityDelegate;
-		public Func<CallerIdentity> CallerIdentityDelegate { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return this.callerIdentityDelegate; } }
-
-		public void SetCallerIdentityDelegate(Func<CallerIdentity> newCallerIdentityDelegate)
+		public Func<CallerIdentity> CallerIdentityDelegate
 		{
-			if (newCallerIdentityDelegate == null) throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
-			Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
-		}// SetCallerIdentityDelegate()
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get { return this.callerIdentityDelegate; }
+
+			set
+			{
+				var newCallerIdentityDelegate = value;
+				if (newCallerIdentityDelegate == null) throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
+				Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
+			}
+		}// CallerIdentityDelegate			
 		#endregion
 
 		#region Connection-related
@@ -362,7 +367,7 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		const int DEFAULT_BATCH_SIZE = 50;
-		public int BatchSize = DEFAULT_BATCH_SIZE;
+		public int BatchSize { get; set; } = DEFAULT_BATCH_SIZE;
 
 	}// class DbContext
 

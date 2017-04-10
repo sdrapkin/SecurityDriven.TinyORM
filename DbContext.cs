@@ -29,7 +29,7 @@ namespace SecurityDriven.TinyORM
 		public static DbContext CreateDbContext(string connectionString) => new DbContext(connectionString);
 
 		#region QueryAsync()
-		public async Task<IReadOnlyList<dynamic>> QueryAsync<TParamType>(
+		public async ValueTask<IReadOnlyList<dynamic>> QueryAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -45,7 +45,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<IReadOnlyList<dynamic>> QueryAsync(
+		public ValueTask<IReadOnlyList<dynamic>> QueryAsync(
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -59,7 +59,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryAsync() - parameterless
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<IReadOnlyList<dynamic>> QueryAsync(
+		public ValueTask<IReadOnlyList<dynamic>> QueryAsync(
 			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -75,7 +75,7 @@ namespace SecurityDriven.TinyORM
 
 		#region QueryMultipleAsync()
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync<TParamType>(
+		public ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -90,7 +90,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryMultipleAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
+		public ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -104,7 +104,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryMultipleAsync() -- parameterless
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Task<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
+		public ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
 			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -120,7 +120,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CommitQueryBatchAsync()
 
-		public async Task<int> CommitQueryBatchAsync(
+		public async ValueTask<int> CommitQueryBatchAsync(
 			QueryBatch queryBatch,
 			int batchSize = 0,
 			CancellationToken cancellationToken = new CancellationToken(),
@@ -184,7 +184,7 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region InternalQueryAsync()
-		async Task<IReadOnlyList<IReadOnlyList<dynamic>>> InternalQueryAsync<TParamType>(
+		async ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> InternalQueryAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -207,7 +207,7 @@ namespace SecurityDriven.TinyORM
 						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
 						{
-							var result = await FetchResultSets(reader, cancellationToken).ConfigureAwait(false);
+							var result = FetchResultSets(reader);
 							ts.Complete();
 							return result;
 						}//reader
@@ -218,18 +218,17 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region FetchResultSets()
-		internal static async Task<List<List<RowStore>>> FetchResultSets(SqlDataReader reader, CancellationToken cancellationToken = new CancellationToken())
+		internal static List<List<RowStore>> FetchResultSets(SqlDataReader reader)
 		{
 			var resultSetList = new List<List<RowStore>>(1); // optimizing for a single result set
 			int resultSetId = 0, fieldCount = 0;
 			object[] rowValues;
-			bool canBeCancelled = cancellationToken.CanBeCanceled;
 
 			do
 			{
 				var rowStoreList = new List<RowStore>(4);
 				ResultSetSchema resultSchema = null;
-				while (!(canBeCancelled && cancellationToken.IsCancellationRequested) && reader.Read()/*await reader.ReadAsync(cancellationToken).ConfigureAwait(false) */)
+				while (reader.Read()/*await reader.ReadAsync(cancellationToken).ConfigureAwait(false) */)
 				{
 					if (resultSchema == null)
 					{
@@ -249,7 +248,7 @@ namespace SecurityDriven.TinyORM
 
 				++resultSetId;
 				resultSetList.Add(rowStoreList);
-			} while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
+			} while (reader.NextResult());
 			return resultSetList;
 		}// FetchResultSets()
 		#endregion
@@ -319,10 +318,10 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region SequentialReaderAsync()
-		public async Task SequentialReaderAsync<TParamType>(
+		public async ValueTask<bool> SequentialReaderAsync<TParamType>(
 			string sql,
 			TParamType param,
-			Func<SqlDataReader, CancellationToken, Task> actionAsync,
+			Func<SqlDataReader, CancellationToken, ValueTask<bool>> actionAsync,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = new CancellationToken(),
@@ -343,7 +342,7 @@ namespace SecurityDriven.TinyORM
 						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 						{
-							await actionAsync(reader, cancellationToken).ConfigureAwait(false);
+							return await actionAsync(reader, cancellationToken).ConfigureAwait(false);
 						}//reader
 					}//comm
 					ts.Complete();
@@ -351,9 +350,9 @@ namespace SecurityDriven.TinyORM
 			}//ts
 		}// SequentialReaderAsync<TParamType>()
 
-		public Task SequentialReaderAsync(
+		public ValueTask<bool> SequentialReaderAsync(
 			string sql,
-			Func<SqlDataReader, CancellationToken, Task> actionAsync,
+			Func<SqlDataReader, CancellationToken, ValueTask<bool>> actionAsync,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = new CancellationToken(),

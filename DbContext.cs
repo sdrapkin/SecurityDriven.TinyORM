@@ -330,6 +330,7 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
+			bool result;
 			using (var ts = DbContext.CreateTransactionScope())
 			{
 				using (var connWrapper = this.GetWrappedConnection())
@@ -342,12 +343,13 @@ namespace SecurityDriven.TinyORM
 						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 						{
-							return await actionAsync(reader, cancellationToken).ConfigureAwait(false);
+							result = await actionAsync(reader, cancellationToken).ConfigureAwait(false);
 						}//reader
 					}//comm
 					ts.Complete();
 				}//connWrapper
 			}//ts
+			return result;
 		}// SequentialReaderAsync<TParamType>()
 
 		public ValueTask<bool> SequentialReaderAsync(

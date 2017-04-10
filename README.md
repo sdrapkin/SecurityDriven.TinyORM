@@ -29,7 +29,7 @@
 16. Helpers for `CREATE`, `UPDATE`, `DELETE`, and `UPSERT` `T-SQL` generation.
 17. `SequentialGuid` generator for **fragmentation-free**, **unique**, **unguessable**, **code-generated** clustered `uniqueidentifier` indexes.
 18. c# 7.0 in `safe` mode. Compiled `any cpu` for .NET 4.5.2+.
-19. Tiny codebase. Tiny ~45k `.dll`. No dependencies.
+19. Tiny codebase. Tiny ~45k `.dll`. [One](https://www.nuget.org/packages/System.Threading.Tasks.Extensions/) dependency.
 20. `TinyORM` on [NuGet](https://www.nuget.org/packages/tinyorm) (`Install-Package TinyORM`).
 21. **MS-PL** ([Microsoft Public](LICENSE.md)) license. If MS-PL does not suit you, contact me.
 

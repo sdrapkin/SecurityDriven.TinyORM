@@ -1,11 +1,12 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Transactions;
 
 namespace SecurityDriven.TinyORM
 {
+
 	using Utils;
 
 	internal static class ConnectionCache
@@ -23,7 +24,7 @@ namespace SecurityDriven.TinyORM
 			}
 
 			ConnectionWrapper wrappedConnection;
-			var wrappedConnectionList = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: GetNewConnectionCache);
+			var wrappedConnectionList = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: _getNewConnectionCache);
 
 			lock (wrappedConnectionList)
 			{
@@ -64,10 +65,7 @@ namespace SecurityDriven.TinyORM
 			}//lock
 		}// OnTransactionCompleted()
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static Dictionary<string, ConnectionWrapper> GetNewConnectionCache(Transaction transaction)
-		{
-			return new Dictionary<string, ConnectionWrapper>(capacity: 1, comparer: Util.FastStringComparer.Instance);
-		}// GetNewConnectionCache()
+		static Func<Transaction, Dictionary<string, ConnectionWrapper>> _getNewConnectionCache =
+			transaction => new Dictionary<string, ConnectionWrapper>(capacity: 1, comparer: Util.FastStringComparer.Instance);
 	}// class ConnectionCache
 }//ns

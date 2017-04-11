@@ -47,6 +47,9 @@ namespace SecurityDriven.TinyORM.Utils
 			{
 				var source = type.ContainsGenericParameters ? Util.ZeroLengthArray<PropertyInfo>.Value : type.GetProperties(propertyBindingFlags);
 				dictionary = new Dictionary<string, Action<object, object>>(source.Length, Util.FastStringComparer.Instance);
+
+				Expression[] valueCast_container = new Expression[1];
+				ParameterExpression[] instance_and_value_container = new ParameterExpression[2];
 				foreach (PropertyInfo p in source)
 				{
 					if (p.GetIndexParameters().Length != 0) continue;
@@ -63,7 +66,10 @@ namespace SecurityDriven.TinyORM.Utils
 
 						UnaryExpression valueCast = Expression.Convert(value, p.PropertyType);
 
-						var setter = Expression.Lambda<Action<object, object>>(Expression.Call(instanceCast, setMethod, valueCast), new[] { instance, value }).Compile();
+						valueCast_container[0] = valueCast;
+						instance_and_value_container[0] = instance;
+						instance_and_value_container[1] = value;
+						var setter = Expression.Lambda<Action<object, object>>(Expression.Call(instanceCast, setMethod, valueCast_container), instance_and_value_container).Compile();
 						dictionary[p.Name] = setter;
 					}
 				}

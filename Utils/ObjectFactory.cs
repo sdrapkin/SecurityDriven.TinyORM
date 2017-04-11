@@ -25,18 +25,16 @@ namespace SecurityDriven.TinyORM.Utils
 		public static Dictionary<string, object> ObjectToDictionary(object obj, Type objType, bool parameterize = false)
 		{
 			if (obj == null) return new Dictionary<string, object>(0, Util.FastStringComparer.Instance);
-			if (parameterize) return s_type2DictionaryBuilderMap_parameterized.GetOrAdd(objType, MakeToDictionaryParameterizedTrueFunc)(obj);
+			if (parameterize) return s_type2DictionaryBuilderMap_parameterized.GetOrAdd(key: objType, valueFactory: MakeToDictionaryParameterizedTrueFunc)(obj);
 
 			return s_type2DictionaryBuilderMap.GetOrAdd(objType, MakeToDictionaryParameterizedFalseFunc)(obj);
 		}
 
 		static readonly ConstantExpression fastStringComparerExpression = Expression.Constant(Util.FastStringComparer.Instance);
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static Func<object, Dictionary<string, object>> MakeToDictionaryParameterizedFalseFunc(Type type) => MakeToDictionaryFunc(type, parameterize: false);
+		static Func<Type, Func<object, Dictionary<string, object>>> MakeToDictionaryParameterizedFalseFunc = type => MakeToDictionaryFunc(type, parameterize: false);
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static Func<object, Dictionary<string, object>> MakeToDictionaryParameterizedTrueFunc(Type type) => MakeToDictionaryFunc(type, parameterize: true);
+		static Func<Type, Func<object, Dictionary<string, object>>> MakeToDictionaryParameterizedTrueFunc = type => MakeToDictionaryFunc(type, parameterize: true);
 
 		static Func<object, Dictionary<string, object>> MakeToDictionaryFunc(Type type, bool parameterize)
 		{

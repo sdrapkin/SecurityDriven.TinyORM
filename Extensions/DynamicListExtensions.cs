@@ -38,10 +38,10 @@ namespace SecurityDriven.TinyORM.Extensions
 				T objT = objectFactory();
 				newList[i] = objT;
 				object[] rowValues = (listOfRowStore[i]).RowValues;
-				Action<object, object> setter;
+
 				for (int j = 0; j < rowValues.Length; ++j)
 				{
-					setter = settersArray[j];
+					var setter = settersArray[j];
 					if (setter != null)
 					{
 						object val = rowValues[j];

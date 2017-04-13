@@ -78,6 +78,11 @@ namespace SecurityDriven.TinyORM
 		/// <summary>
 		/// Converts RowStore into an instance of T on a best-effort-match basis. Does not throw on any mismatches.
 		/// </summary>
+		public T ToObject<T>() where T : class, new() => ToObject<T>(New<T>.Instance);
+
+		/// <summary>
+		/// Converts RowStore into an instance of T on a best-effort-match basis. Does not throw on any mismatches.
+		/// </summary>
 		public T ToObject<T>(Func<T> objectFactory) where T : class
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
@@ -98,7 +103,12 @@ namespace SecurityDriven.TinyORM
 		/// <summary>
 		/// Converts RowStore into an instance of T, and checks existence of all required (non-optional) properties. Failed checks throw an exception.
 		/// </summary>
-		public T ToCheckedObject<T>(Func<T> objectFactory, string[] optionalProperties = null) where T : class, new()
+		public T ToCheckedObject<T>(string[] optionalProperties = null) where T : class, new() => ToCheckedObject<T>(New<T>.Instance, optionalProperties);
+
+		/// <summary>
+		/// Converts RowStore into an instance of T, and checks existence of all required (non-optional) properties. Failed checks throw an exception.
+		/// </summary>
+		public T ToCheckedObject<T>(Func<T> objectFactory, string[] optionalProperties = null) where T : class
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
 			var result = objectFactory();
@@ -117,7 +127,7 @@ namespace SecurityDriven.TinyORM
 						optionalPropertyHashSet = new HashSet<string>(optionalProperties, Util.FastStringComparer.Instance);
 					}
 					if (optionalPropertyHashSet.Contains(kvp.Key)) { continue; }
-				THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
+					THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
 				}
 			}
 			return result;

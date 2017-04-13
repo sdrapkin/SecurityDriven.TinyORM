@@ -28,10 +28,10 @@ namespace SecurityDriven.TinyORM.Extensions
 			var p = new SqlParameter() { ParameterName = parameterName };
 			var stringType = StringType.NVARCHAR;
 
-			if (data is ValueType)
+			if (data is ValueType dataValue)
 			{
 				// if data is DateTime, switch to higher precision of DateTime2
-				if (data is DateTime)
+				if (dataValue is DateTime dataDateTime)
 				{
 					p.DbType = DbType.DateTime2;
 					p.Value = data;
@@ -96,7 +96,7 @@ namespace SecurityDriven.TinyORM.Extensions
 					propValue = kvp.Value;
 					propValueEnumerable = propValue as IEnumerable;
 
-					if (propValueEnumerable != null && !(propValue is string) && !(propValue is byte[]))
+					if (propValueEnumerable != null && !(propValue is string s) && !(propValue is byte[] b))
 					{
 						count = 0;
 						//if (propName[0] != '@') propName = '@' + propName;

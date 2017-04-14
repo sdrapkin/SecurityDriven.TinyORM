@@ -84,7 +84,6 @@ namespace SecurityDriven.TinyORM.Extensions
 			var paramCol = command.Parameters;
 
 			object propValue;
-			IEnumerable propValueEnumerable;
 			string propName;
 			int count;
 
@@ -96,9 +95,8 @@ namespace SecurityDriven.TinyORM.Extensions
 					var kvp = objPropertyValueDictionaryEnumerator.Current;
 					propName = kvp.Key;
 					propValue = kvp.Value;
-					propValueEnumerable = propValue as IEnumerable;
 
-					if (propValueEnumerable != null && !(propValue is string s) && !(propValue is byte[] b))
+					if (propValue is IEnumerable propValueEnumerable && !(propValue is string s) && !(propValue is byte[] b))
 					{
 						count = 0;
 						//if (propName[0] != '@') propName = '@' + propName;

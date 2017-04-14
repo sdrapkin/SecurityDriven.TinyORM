@@ -87,16 +87,19 @@ namespace SecurityDriven.TinyORM
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
 			var result = objectFactory();
-			object val;
 
-			foreach (var kvp in this.Schema.FieldMap)
+			var fieldMapEnumerator = this.Schema.FieldMap.GetEnumerator();
+
+			while (fieldMapEnumerator.MoveNext())
 			{
+				var kvp = fieldMapEnumerator.Current;
 				if (setters.TryGetValue(kvp.Key, out var setter))
 				{
-					val = this[kvp.Key];
+					var val = this[kvp.Key];
 					setter(result, val);
 				}
 			}
+
 			return result;
 		}// ToObject<T>()
 
@@ -111,11 +114,14 @@ namespace SecurityDriven.TinyORM
 		public T ToCheckedObject<T>(Func<T> objectFactory, string[] optionalProperties = null) where T : class
 		{
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
+			var settersEnumerator = setters.GetEnumerator();
 			var result = objectFactory();
 			HashSet<string> optionalPropertyHashSet = null;
 
-			foreach (var kvp in setters)
+			while (settersEnumerator.MoveNext())
 			{
+				var kvp = settersEnumerator.Current;
+
 				var val = this[kvp.Key];
 				if (val != notFound)
 					kvp.Value(result, val);
@@ -129,7 +135,7 @@ namespace SecurityDriven.TinyORM
 					if (optionalPropertyHashSet.Contains(kvp.Key)) { continue; }
 					THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
 				}
-			}
+			}//while
 			return result;
 		}// ToCheckedObject<T>()
 	}// class RowStore

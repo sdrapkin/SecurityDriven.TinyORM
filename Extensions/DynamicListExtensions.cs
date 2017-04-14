@@ -27,8 +27,11 @@ namespace SecurityDriven.TinyORM.Extensions
 
 			var settersArray = new Action<object, object>[fieldCount];
 			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			foreach (var setter in setters)
+			var settersEnumerator = setters.GetEnumerator();
+
+			while (settersEnumerator.MoveNext())
 			{
+				var setter = settersEnumerator.Current;
 				if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out var index))
 					settersArray[index] = setter.Value;
 			}

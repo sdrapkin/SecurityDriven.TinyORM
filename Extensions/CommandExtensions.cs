@@ -90,8 +90,10 @@ namespace SecurityDriven.TinyORM.Extensions
 
 			if (objPropertyValueDictionary.Count > 0)
 			{
-				foreach (var kvp in objPropertyValueDictionary)
+				var objPropertyValueDictionaryEnumerator = objPropertyValueDictionary.GetEnumerator();
+				while (objPropertyValueDictionaryEnumerator.MoveNext())
 				{
+					var kvp = objPropertyValueDictionaryEnumerator.Current;
 					propName = kvp.Key;
 					propValue = kvp.Value;
 					propValueEnumerable = propValue as IEnumerable;
@@ -111,7 +113,7 @@ namespace SecurityDriven.TinyORM.Extensions
 					{
 						paramCol.Add(GenerateParameter(parameterName: propName, data: propValue));
 					}
-				}// foreach over property dictionary
+				}// while over property dictionary enumerator
 			}// if dictionary count > 0
 		}// SetParameters()
 

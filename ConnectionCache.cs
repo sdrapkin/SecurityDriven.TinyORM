@@ -54,11 +54,12 @@ namespace SecurityDriven.TinyORM
 
 			//lock (connectionList)
 			{
-				foreach (var kvp in connectionList)
+				var connectionListEnumerator = connectionList.GetEnumerator();
+				while (connectionListEnumerator.MoveNext())
 				{
 					try
 					{
-						kvp.Value.Dispose();
+						connectionListEnumerator.Current.Value.Dispose();
 					}
 					catch { }
 				}

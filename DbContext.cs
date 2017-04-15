@@ -25,6 +25,13 @@ namespace SecurityDriven.TinyORM
 			this.connectionString = connectionString;
 		}//ctor
 
+		static DbContext()
+		{
+			ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
+			int desiredMinWorkerThreadsNumber = Environment.ProcessorCount + 2;
+			if (workerThreads < desiredMinWorkerThreadsNumber) ThreadPool.SetMinThreads(desiredMinWorkerThreadsNumber, completionPortThreads);
+		}// static ctor
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static DbContext CreateDbContext(string connectionString) => new DbContext(connectionString);
 

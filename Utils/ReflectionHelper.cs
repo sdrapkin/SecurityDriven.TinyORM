@@ -59,11 +59,7 @@ namespace SecurityDriven.TinyORM.Utils
 						var instance = Expression.Parameter(ObjectType, "instance");
 						var value = Expression.Parameter(ObjectType, "value");
 
-						// value as T is slightly faster than (T)value, so if it's not a value type, use that
-						UnaryExpression instanceCast = (type.IsValueType) ?
-							Expression.Convert(instance, type) :
-							Expression.TypeAs(instance, type);
-
+						UnaryExpression instanceCast = Expression.Convert(instance, type);
 						UnaryExpression valueCast = Expression.Convert(value, p.PropertyType);
 
 						valueCast_container[0] = valueCast;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace SecurityDriven.TinyORM.Extensions
@@ -12,62 +13,75 @@ namespace SecurityDriven.TinyORM.Extensions
 		static readonly ParallelOptions s_ParallelOptions = new ParallelOptions { TaskScheduler = TaskScheduler.Default };
 
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic) where T : class, new() => ToObjectArray<T>(listOfDynamic, New<T>.Instance);
 
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
-			var listOfRowStore = (IReadOnlyList<RowStore>)listOfDynamic;
-			int newListCount = listOfRowStore.Count;
-			T[] newList = new T[newListCount];
-			if (newListCount == 0) return newList;
-
-			RowStore firstElement = listOfRowStore[0];
-			int fieldCount = firstElement.RowValues.Length;
-
-			var settersArray = new Action<object, object>[fieldCount];
-			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
-			var settersEnumerator = setters.GetEnumerator();
-
-			while (settersEnumerator.MoveNext())
+			unchecked
 			{
-				var setter = settersEnumerator.Current;
-				if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out var index))
-					settersArray[index] = setter.Value;
-			}
+				var listOfRowStore = (IReadOnlyList<RowStore>)listOfDynamic;
+				int newListCount = listOfRowStore.Count;
+				T[] newList = new T[newListCount];
+				if (newListCount == 0) return newList;
 
-			Parallel.For(0, newListCount, s_ParallelOptions, i =>
-			{
-				T objT = objectFactory();
-				newList[i] = objT;
-				object[] rowValues = (listOfRowStore[i]).RowValues;
+				RowStore firstElement = listOfRowStore[0];
+				int fieldCount = firstElement.RowValues.Length;
 
-				for (int j = 0; j < rowValues.Length; ++j)
+				var settersArray = new Action<T, object>[fieldCount];
+				var setters = ReflectionHelper<T>.Setters;
+				var settersEnumerator = setters.GetEnumerator();
+
+				while (settersEnumerator.MoveNext())
 				{
-					var setter = settersArray[j];
-					if (setter != null)
-					{
-						object val = rowValues[j];
-						setter(objT, val == DBNull.Value ? null : val);
-					}
+					var setter = settersEnumerator.Current;
+					if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out var index))
+						settersArray[index] = setter.Value;
 				}
-			});
-			return newList;
+
+				Parallel.For(0, newListCount, s_ParallelOptions, i =>
+				{
+					unchecked
+					{
+						T objT = objectFactory();
+						newList[i] = objT;
+						object[] rowValues = (listOfRowStore[i]).RowValues;
+
+						for (int j = 0; j < rowValues.Length; ++j)
+						{
+							var setter = settersArray[j];
+							if (setter != null)
+							{
+								object val = rowValues[j];
+								setter(objT, val == DBNull.Value ? null : val);
+							}
+						}
+					}
+				});
+				return newList;
+			}
 		}// ToObjectArray<T>()
 
 		/// <summary>Converts a List of dynamic objects into an array of T-objects using a provided object mapper. Parallelized.</summary>
 		public static T[] ToMappedObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<dynamic, T> objectMapper)
 		{
-			var listOfObject = (IReadOnlyList<object>)listOfDynamic;
-			int newListCount = listOfObject.Count;
-			T[] newList = new T[newListCount];
-			if (newListCount == 0) return newList;
-
-			Parallel.For(0, newListCount, s_ParallelOptions, i =>
+			unchecked
 			{
-				newList[i] = objectMapper(listOfObject[i]);
-			});
-			return newList;
+				var listOfObject = (IReadOnlyList<object>)listOfDynamic;
+				int newListCount = listOfObject.Count;
+				T[] newList = new T[newListCount];
+				if (newListCount == 0) return newList;
+
+				Parallel.For(0, newListCount, s_ParallelOptions, i =>
+				{
+					unchecked
+					{
+						newList[i] = objectMapper(listOfObject[i]);
+					}
+				});
+				return newList;
+			}
 		}//ToMappedObjectArray<T>
 
 		/// <summary>Converts any Array or List of T into a single-column named TVP.</summary>

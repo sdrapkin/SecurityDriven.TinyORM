@@ -78,6 +78,7 @@ namespace SecurityDriven.TinyORM
 		/// <summary>
 		/// Converts RowStore into an instance of T on a best-effort-match basis. Does not throw on any mismatches.
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public T ToObject<T>() where T : class, new() => ToObject<T>(New<T>.Instance);
 
 		/// <summary>
@@ -85,7 +86,7 @@ namespace SecurityDriven.TinyORM
 		/// </summary>
 		public T ToObject<T>(Func<T> objectFactory) where T : class
 		{
-			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
+			var setters = ReflectionHelper<T>.Setters;
 			var result = objectFactory();
 
 			var fieldMapEnumerator = this.Schema.FieldMap.GetEnumerator();
@@ -106,6 +107,7 @@ namespace SecurityDriven.TinyORM
 		/// <summary>
 		/// Converts RowStore into an instance of T, and checks existence of all required (non-optional) properties. Failed checks throw an exception.
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public T ToCheckedObject<T>(string[] optionalProperties = null) where T : class, new() => ToCheckedObject<T>(New<T>.Instance, optionalProperties);
 
 		/// <summary>
@@ -113,7 +115,7 @@ namespace SecurityDriven.TinyORM
 		/// </summary>
 		public T ToCheckedObject<T>(Func<T> objectFactory, string[] optionalProperties = null) where T : class
 		{
-			var setters = ReflectionHelper.GetPropertySetters(typeof(T));
+			var setters = ReflectionHelper<T>.Setters;
 			var settersEnumerator = setters.GetEnumerator();
 			var result = objectFactory();
 			HashSet<string> optionalPropertyHashSet = null;
@@ -145,10 +147,7 @@ namespace SecurityDriven.TinyORM
 	public class FieldNotFound
 	{
 		internal FieldNotFound() { }
-		public override string ToString()
-		{
-			throw new NotImplementedException(@"Field not found. Use ""obj is FieldNotFound"" instead of .ToString().");
-		}
+		public override string ToString() => throw new NotImplementedException(@"Field not found. Use ""obj is FieldNotFound"" instead of .ToString().");
 	}//class FieldNotFound
 	#endregion
 }//ns

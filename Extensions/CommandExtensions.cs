@@ -13,16 +13,6 @@ namespace SecurityDriven.TinyORM.Extensions
 
 	internal static class CommandExtensions
 	{
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static void SetParameters<T>(this SqlCommand command, T obj) where T : class => SetParameters(command, obj, typeof(T));
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetParameters(this SqlCommand command, object obj, Type objType)
-		{
-			var objPropertyValueDictionary = ObjectFactory.ObjectToDictionary(obj, objType, parameterize: true);
-			SetParameters(command, objPropertyValueDictionary);
-		}// SetParameters()
-
 		static SqlParameter GenerateParameter(string parameterName, object data)
 		{
 			var p = new SqlParameter() { ParameterName = parameterName };
@@ -79,6 +69,20 @@ namespace SecurityDriven.TinyORM.Extensions
 			return p;
 		}// GenerateParameter()
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static void SetParameters(this SqlCommand command, object obj, Type objType)
+		{
+			var objPropertyValueDictionary = ObjectFactory.ObjectToDictionary(obj, objType, parameterize: true);
+			SetParameters(command, objPropertyValueDictionary);
+		}// SetParameters()
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static void SetParameters<T>(this SqlCommand command, T obj) where T : class
+		{
+			var objPropertyValueDictionary = ReflectionHelper_Shared.ObjectToDictionary<T>(obj, ReflectionHelper_Shared.PARAM_PREFIX);
+			SetParameters(command, objPropertyValueDictionary);
+		}// SetParameters<T>()
+
 		private static void SetParameters(this SqlCommand command, Dictionary<string, object> objPropertyValueDictionary)
 		{
 			var paramCol = command.Parameters;
@@ -115,19 +119,31 @@ namespace SecurityDriven.TinyORM.Extensions
 			}// if dictionary count > 0
 		}// SetParameters()
 
-		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param, Type explicitParamType = null) where TParamType : class
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param) where TParamType : class
 		{
 			if (param != null)
 			{
 				var dictParam = param as Dictionary<string, object>;
 				if (dictParam != null)
 					command.SetParameters(dictParam);
-				else if (explicitParamType == null)
+				else
 					command.SetParameters<TParamType>(param);
+			}
+		}// SetupParameters<TParamType>()
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param, Type explicitParamType) where TParamType : class
+		{
+			if (param != null)
+			{
+				var dictParam = param as Dictionary<string, object>;
+				if (dictParam != null)
+					command.SetParameters(dictParam);
 				else
 					command.SetParameters(param, explicitParamType);
 			}
-		}// SetupParameters<TParamType()
+		}// SetupParameters<TParamType>()
 
 		internal const string CTX_PARAMETER_NAME = "@@ctx";
 		internal const string CT_PARAMETER_NAME = "@@ct";

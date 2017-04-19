@@ -19,9 +19,6 @@ namespace SecurityDriven.TinyORM.Utils
 		static readonly ConstantExpression s_nullExpression = Expression.Constant(null);
 		static readonly Type s_objectType = typeof(object);
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static Dictionary<string, object> ObjectToDictionary<T>(T obj, bool parameterize = false) where T : class => ObjectToDictionary(obj, typeof(T), parameterize);
-
 		public static Dictionary<string, object> ObjectToDictionary(object obj, Type objType, bool parameterize = false)
 		{
 			if (obj == null) return new Dictionary<string, object>(0, Util.FastStringComparer.Instance);

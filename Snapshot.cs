@@ -26,7 +26,7 @@ namespace SecurityDriven.TinyORM
 					propertyMap.Add(kvp.Key, rowStore.RowValues[kvp.Value]);
 				}
 			}
-			else propertyMap = ObjectFactory.ObjectToDictionary(obj);
+			else propertyMap = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 
 			return propertyMap;
 		}//GetObjectPropertiesAsDictionary<T>()
@@ -63,7 +63,7 @@ namespace SecurityDriven.TinyORM
 		/// <summary>Creates a Snapshot of "obj", which can then be compared (diff'ed) against another object or another Snapshot.</summary>
 		public static Snapshot Create<T>(T obj) where T : class
 		{
-			var externalPropertyMap = GetObjectPropertiesAsDictionary(obj);
+			var externalPropertyMap = GetObjectPropertiesAsDictionary<T>(obj);
 			return new Snapshot(externalPropertyMap);
 		}// Create<T>()
 

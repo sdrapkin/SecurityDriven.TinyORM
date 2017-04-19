@@ -30,7 +30,7 @@ namespace SecurityDriven.TinyORM.Extensions
 				int fieldCount = firstElement.RowValues.Length;
 
 				var settersArray = new Action<T, object>[fieldCount];
-				var setters = ReflectionHelper<T>.Setters;
+				var setters = ReflectionHelper_Setter<T>.Setters;
 				var settersEnumerator = setters.GetEnumerator();
 
 				while (settersEnumerator.MoveNext())

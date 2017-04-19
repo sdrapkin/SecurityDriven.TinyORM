@@ -67,7 +67,10 @@
     <Compile Include="QueryBatch.cs" />
     <Compile Include="Utils\New.cs" />
     <Compile Include="Utils\ObjectFactory.cs" />
-    <Compile Include="Utils\ReflectionHelper.cs" />
+    <Compile Include="Utils\ReflectionHelper_Setter.cs" />
+    <Compile Include="Utils\ReflectionHelper_Getter.cs" />
+    <Compile Include="Utils\ReflectionHelper_ParameterizedGetter.cs" />
+    <Compile Include="Utils\ReflectionHelper_Shared.cs" />
     <Compile Include="Utils\StringBuilderCache.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>

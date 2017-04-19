@@ -23,7 +23,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		public static QueryInfo Insert<T>(T obj, Predicate<string> excludedProperties = null, string tableName = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
-			var dict = ObjectFactory.ObjectToDictionary(obj);
+			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
 			var dictNew = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
 
@@ -65,7 +65,7 @@ namespace SecurityDriven.TinyORM.Helpers
 
 		public static QueryInfo Update<T, TParamType>(T obj, string whereSql = null, TParamType whereParam = null, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class where TParamType : class
 		{
-			if (dict == null) dict = ObjectFactory.ObjectToDictionary(obj);
+			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			QueryInfo queryInfo = UpdateRaw<T>(obj, excludedProperties, tableName, dict);
 			var paramDictAlias = queryInfo.ParameterMap;
 			var whereParamMap = default(Dictionary<string, object>);
@@ -79,7 +79,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			}
 			else if (whereParam != null)
 			{
-				whereParamMap = whereParam as Dictionary<string, object> ?? ObjectFactory.ObjectToDictionary(whereParam, parameterize: true);
+				whereParamMap = whereParam as Dictionary<string, object> ?? ReflectionHelper_Shared.ObjectToDictionary<TParamType>(whereParam, ReflectionHelper_Shared.PARAM_PREFIX);
 				foreach (var kvp in whereParamMap)
 					paramDictAlias.Add(kvp.Key, kvp.Value);
 			}
@@ -93,7 +93,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		internal static QueryInfo UpdateRaw<T>(T obj, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
-			if (dict == null) dict = ObjectFactory.ObjectToDictionary(obj);
+			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
 			var dictNew = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
 
@@ -137,7 +137,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			string sql = "DELETE FROM " + tableName + " WHERE " + whereSql;
 			var whereParamMap = default(Dictionary<string, object>);
 
-			if (whereParam != null) whereParamMap = whereParam as Dictionary<string, object> ?? ObjectFactory.ObjectToDictionary(whereParam, parameterize: true);
+			if (whereParam != null) whereParamMap = whereParam as Dictionary<string, object> ?? ReflectionHelper_Shared.ObjectToDictionary<TParamType>(whereParam, ReflectionHelper_Shared.PARAM_PREFIX);
 			var result = new QueryInfo { SQL = sql, ParameterMap = whereParamMap };
 			return result;
 		}// Delete<TParamType>()
@@ -148,7 +148,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id"; // "S" is source; "T" is target
-			var dict = ObjectFactory.ObjectToDictionary(obj);
+			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
 			var dictParams = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
 

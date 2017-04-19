@@ -86,7 +86,7 @@ namespace SecurityDriven.TinyORM
 		/// </summary>
 		public T ToObject<T>(Func<T> objectFactory) where T : class
 		{
-			var setters = ReflectionHelper<T>.Setters;
+			var setters = ReflectionHelper_Setter<T>.Setters;
 			var result = objectFactory();
 
 			var fieldMapEnumerator = this.Schema.FieldMap.GetEnumerator();
@@ -115,7 +115,7 @@ namespace SecurityDriven.TinyORM
 		/// </summary>
 		public T ToCheckedObject<T>(Func<T> objectFactory, string[] optionalProperties = null) where T : class
 		{
-			var setters = ReflectionHelper<T>.Setters;
+			var setters = ReflectionHelper_Setter<T>.Setters;
 			var settersEnumerator = setters.GetEnumerator();
 			var result = objectFactory();
 			HashSet<string> optionalPropertyHashSet = null;

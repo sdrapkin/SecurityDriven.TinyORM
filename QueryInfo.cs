@@ -30,7 +30,7 @@ namespace SecurityDriven.TinyORM
 				return queryInfo;
 			}
 
-			queryInfo.ParameterMap = ObjectFactory.ObjectToDictionary(obj: param, objType: typeof(TParamType), parameterize: true);
+			queryInfo.ParameterMap = ReflectionHelper_Shared.ObjectToDictionary<TParamType>(param, ReflectionHelper_Shared.PARAM_PREFIX);
 			return queryInfo;
 		}// CreateQueryInfo<TParamType>()
 	}// class QueryInfo

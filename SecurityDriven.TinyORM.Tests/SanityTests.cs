@@ -9,14 +9,17 @@ namespace SecurityDriven.TinyORM.Tests
 	using SecurityDriven.TinyORM;
 
 	[TestClass]
-	public class Sanity
+	public class SanityTests
 	{
 		static readonly string connString = System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
 		static readonly Version tinyormVersion = typeof(DbContext).Assembly.GetName().Version;
 
+		static DbContext db;
+
 		[ClassInitialize]
 		public static void Initialize(TestContext testContext)
 		{
+			db = DbContext.CreateDbContext(connString);
 		}
 
 		[ClassCleanup]
@@ -27,7 +30,6 @@ namespace SecurityDriven.TinyORM.Tests
 		[TestMethod]
 		public async Task ConnectionTest()
 		{
-			var db = DbContext.CreateDbContext(connString);
 			var results = await db.QueryAsync("select [Answer] = 1 + 2, [Guid] = NEWID() UNION ALL SELECT 5, 0x");
 			Assert.IsTrue(results.Count == 2);
 
@@ -46,6 +48,25 @@ namespace SecurityDriven.TinyORM.Tests
 			Assert.IsTrue((Guid)secondRow.Guid != (Guid)firstRow.Guid);
 			Assert.IsTrue((Guid)secondRow.Guid == Guid.Empty);
 			Console.WriteLine(tinyormVersion);
-		}
+		}// ConnectionTest()
+
+		[TestMethod]
+		public async Task NullTest()
+		{
+			int expectedAnswer = 123;
+			var rows = await db.QueryAsync($"select {expectedAnswer} as Answer union all select null");
+			var row0 = rows[0];
+			var row1 = rows[1];
+
+			Assert.IsTrue(row0.Answer == expectedAnswer);
+			Assert.IsTrue(row1.Answer == null);
+
+			Assert.IsTrue(row0["Answer"] == expectedAnswer);
+			Assert.IsTrue(row1["Answer"] == null);
+
+			Assert.IsTrue(row0[0] == expectedAnswer);
+			Assert.IsTrue(row1[0] == null);
+		}// NullTest()
+
 	}//class
 }//ns

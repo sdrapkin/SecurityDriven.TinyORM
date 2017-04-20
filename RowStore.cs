@@ -23,7 +23,8 @@ namespace SecurityDriven.TinyORM
 		{
 			get
 			{
-				return this.RowValues[i];
+				var result = this.RowValues[i];
+				return result == DBNull.Value ? null : result;
 			}
 		}
 

@@ -36,5 +36,15 @@
 
 If you are serious about SQL Server, give **TinyORM** a try (even if you're a `Dapper` fan).
 
+## Simple TinyORM query ##
+```csharp
+var db = DbContext.CreateDbContext(connString);
+var query = await db.QueryAsync("select [Answer] = @a + @b", new { @a = 123, @b = 2 });
+
+Console.WriteLine(query.First().Answer); // prints "125"
+
+static string connString = "Data Source=.\\SQL2012; Initial Catalog=tempdb; Integrated Security=True;";
+```
+
 ## ##
 Nature graphic by [Freepik](http://www.flaticon.com/authors/freepik) is licensed under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/).

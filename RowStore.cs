@@ -13,7 +13,7 @@ namespace SecurityDriven.TinyORM
 		public readonly ResultSetSchema Schema;
 		public readonly object[] RowValues;
 
-		internal RowStore(ResultSetSchema schema, object[] rowValues)
+		internal RowStore(ref ResultSetSchema schema, ref object[] rowValues)
 		{
 			this.Schema = schema;
 			this.RowValues = rowValues;

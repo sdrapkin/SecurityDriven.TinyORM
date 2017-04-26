@@ -4,14 +4,15 @@ using System.Runtime.CompilerServices;
 
 namespace SecurityDriven.TinyORM
 {
-	using NameValueTypeTuple = Tuple<string, object, Type>;
+	using Utils;
+	using NameValueTypeTuple = ValueTuple<string, Dictionary<string, (object, Type)>>;
 
 	public class QueryBatch
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryBatch CreateQueryBatch() => new QueryBatch();
+		public static QueryBatch Create() => new QueryBatch();
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryBatch CreateQueryBatch(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
+		public static QueryBatch Create(IEnumerable<QueryBatch> queryBatchList) => new QueryBatch().Append(queryBatchList);
 
 		internal QueryBatch() { }
 
@@ -19,7 +20,8 @@ namespace SecurityDriven.TinyORM
 
 		public QueryBatch AddQuery<TParamType>(string sql, TParamType param) where TParamType : class
 		{
-			var query = new NameValueTypeTuple(sql, param, typeof(TParamType));
+			var paramDictionary = ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(param);
+			var query = new NameValueTypeTuple(sql, paramDictionary);
 			queryList.Add(query);
 			return this;
 		}// AddQuery<TParamType>()

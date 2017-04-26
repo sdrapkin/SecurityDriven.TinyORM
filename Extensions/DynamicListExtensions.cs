@@ -10,8 +10,6 @@ namespace SecurityDriven.TinyORM.Extensions
 
 	public static class DynamicListExtensions
 	{
-		static readonly ParallelOptions s_ParallelOptions = new ParallelOptions { TaskScheduler = TaskScheduler.Default };
-
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic) where T : class, new() => ToObjectArray<T>(listOfDynamic, New<T>.Instance);
@@ -19,48 +17,44 @@ namespace SecurityDriven.TinyORM.Extensions
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
-			unchecked
+			var listOfRowStore = (List<RowStore>)listOfDynamic;
+			int newListCount = listOfRowStore.Count;
+			T[] newList = new T[newListCount];
+			if (newListCount == 0) return newList;
+
+			RowStore firstElement = listOfRowStore[0];
+
+			var settersArray = new Action<T, object>[firstElement.RowValues.Length];
+			var settersEnumerator = ReflectionHelper_Setter<T>.Setters.GetEnumerator();
+			var fieldMap = firstElement.Schema.FieldMap;
+			var factory = objectFactory;
+
+			while (settersEnumerator.MoveNext())
 			{
-				var listOfRowStore = (IReadOnlyList<RowStore>)listOfDynamic;
-				int newListCount = listOfRowStore.Count;
-				T[] newList = new T[newListCount];
-				if (newListCount == 0) return newList;
-
-				RowStore firstElement = listOfRowStore[0];
-				int fieldCount = firstElement.RowValues.Length;
-
-				var settersArray = new Action<T, object>[fieldCount];
-				var setters = ReflectionHelper_Setter<T>.Setters;
-				var settersEnumerator = setters.GetEnumerator();
-
-				while (settersEnumerator.MoveNext())
-				{
-					var setter = settersEnumerator.Current;
-					if (firstElement.Schema.FieldMap.TryGetValue(setter.Key, out var index))
-						settersArray[index] = setter.Value;
-				}
-
-				Parallel.For(0, newListCount, s_ParallelOptions, i =>
-				{
-					unchecked
-					{
-						T objT = objectFactory();
-						newList[i] = objT;
-						object[] rowValues = (listOfRowStore[i]).RowValues;
-
-						for (int j = 0; j < rowValues.Length; ++j)
-						{
-							var setter = settersArray[j];
-							if (setter != null)
-							{
-								object val = rowValues[j];
-								setter(objT, val == DBNull.Value ? null : val);
-							}
-						}
-					}
-				});
-				return newList;
+				var setter = settersEnumerator.Current;
+				if (fieldMap.TryGetValue(setter.Key, out var index))
+					settersArray[index] = setter.Value;
 			}
+
+			Parallel.For(0, newListCount, i =>
+			{
+				unchecked
+				{
+					T objT = factory();
+					newList[i] = objT;
+					object[] rowValues = listOfRowStore[i].RowValues;
+
+					for (int j = 0; j < rowValues.Length; ++j)
+					{
+						var setter = settersArray[j];
+						if (setter == null) continue;
+
+						object val = rowValues[j];
+						setter(objT, val == DBNull.Value ? null : val);
+					}//for
+				}// unchecked
+			});
+			return newList;
 		}// ToObjectArray<T>()
 
 		/// <summary>Converts a List of dynamic objects into an array of T-objects using a provided object mapper. Parallelized.</summary>
@@ -72,14 +66,9 @@ namespace SecurityDriven.TinyORM.Extensions
 				int newListCount = listOfObject.Count;
 				T[] newList = new T[newListCount];
 				if (newListCount == 0) return newList;
+				var objectMapperAlias = objectMapper;
 
-				Parallel.For(0, newListCount, s_ParallelOptions, i =>
-				{
-					unchecked
-					{
-						newList[i] = objectMapper(listOfObject[i]);
-					}
-				});
+				Parallel.For(0, newListCount, i => newList[i] = objectMapperAlias(listOfObject[i]));
 				return newList;
 			}
 		}//ToMappedObjectArray<T>

@@ -167,7 +167,7 @@ namespace SecurityDriven.TinyORM
 								var command = new SqlCommand(commandString);
 								if (element.Item2 != null)
 								{
-									command.SetupParameters(element.Item2, element.Item3);
+									command.SetParametersFromDictionary(element.Item2);
 								}
 
 								command.SetupMetaParameters(callerIdentity.UserIdAsBytes, callerMemberName, callerFilePath, callerLineNumber);
@@ -225,32 +225,37 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region FetchResultSets()
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static List<List<RowStore>> FetchResultSets(SqlDataReader reader)
 		{
 			var resultSetList = new List<List<RowStore>>(1); // optimizing for a single result set
 			int resultSetId = 0, fieldCount = 0;
-			object[] rowValues;
 
 			do
 			{
-				var rowStoreList = new List<RowStore>(4);
+				var rowStoreList = new List<RowStore>(2);
 				ResultSetSchema resultSchema = null;
-				while (reader.Read()/*await reader.ReadAsync(cancellationToken).ConfigureAwait(false) */)
-				{
-					if (resultSchema == null)
-					{
-						fieldCount = reader.FieldCount;
-						var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
-						for (int i = 0; i < fieldCount; ++i)
-						{
-							fieldMap.Add(reader.GetName(i), i);
-						}
-						resultSchema = new ResultSetSchema(resultSetId, fieldMap);
-					}
 
-					rowValues = new object[fieldCount];
+				if (reader.Read())
+				{
+					fieldCount = reader.FieldCount;
+					var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
+					for (int i = 0; i < fieldCount; ++i)
+					{
+						fieldMap.Add(reader.GetName(i), i);
+					}
+					resultSchema = new ResultSetSchema(resultSetId, fieldMap);
+
+					var rowValues = new object[fieldCount];
 					reader.GetValues(rowValues);
-					rowStoreList.Add(new RowStore(resultSchema, rowValues));
+					rowStoreList.Add(new RowStore(ref resultSchema, ref rowValues));
+				}
+
+				while (reader.Read())
+				{
+					var rowValues = new object[fieldCount];
+					reader.GetValues(rowValues);
+					rowStoreList.Add(new RowStore(ref resultSchema, ref rowValues));
 				}
 
 				++resultSetId;

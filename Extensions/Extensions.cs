@@ -1,0 +1,11 @@
+﻿using System;
+
+namespace SecurityDriven.TinyORM.Extensions
+{
+	using SecurityDriven.TinyORM.Helpers;
+
+	public static class Extensions
+	{
+		public static (TT, Type) WithType<TT>(this TT entity) => (entity, T<TT>.TypeOf);
+	}// class Extensions
+}//ns

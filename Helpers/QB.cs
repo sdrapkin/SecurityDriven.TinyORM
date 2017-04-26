@@ -25,7 +25,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (tableName == null) tableName = obj.AsSqlName();
 			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
-			var dictNew = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
+			var dictNew = new Dictionary<string, (object, Type)>(dictCount, Util.FastStringComparer.Instance);
 
 			int i = 0;
 			string currentKey, paramName;
@@ -50,7 +50,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			}//foreach
 
 			sb.Append(") VALUES (").Append(sbParams.ToString()).Append(')');
-			var result = new QueryInfo { SQL = sb.ToString(), ParameterMap = dictNew };
+			var result = QueryInfo.Create(sql: sb.ToString(), parameterMap: dictNew);
 			return result;
 		}// Insert<T>()
 		#endregion
@@ -58,17 +58,30 @@ namespace SecurityDriven.TinyORM.Helpers
 		#region Update<T, TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static QueryInfo Update<T>(T obj, string whereSql = null, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
+		public static QueryInfo Update<T>(
+			T obj,
+			string whereSql = null,
+			Predicate<string> excludedProperties = null,
+			string tableName = null,
+			Dictionary<string, (object, Type)> dict = null
+		) where T : class
 		{
 			return Update<T, string>(obj: obj, whereSql: whereSql, whereParam: null, excludedProperties: excludedProperties, tableName: tableName, dict: dict);
 		}// Update<T>
 
-		public static QueryInfo Update<T, TParamType>(T obj, string whereSql = null, TParamType whereParam = null, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class where TParamType : class
+		public static QueryInfo Update<T, TParamType>(
+			T obj,
+			string whereSql = null,
+			TParamType whereParam = null,
+			Predicate<string> excludedProperties = null,
+			string tableName = null,
+			Dictionary<string, (object, Type)> dict = null
+		) where T : class where TParamType : class
 		{
 			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			QueryInfo queryInfo = UpdateRaw<T>(obj, excludedProperties, tableName, dict);
 			var paramDictAlias = queryInfo.ParameterMap;
-			var whereParamMap = default(Dictionary<string, object>);
+			var whereParamMap = default(Dictionary<string, (object, Type)>);
 
 			if (string.IsNullOrEmpty(whereSql))
 			{
@@ -79,23 +92,28 @@ namespace SecurityDriven.TinyORM.Helpers
 			}
 			else if (whereParam != null)
 			{
-				whereParamMap = whereParam as Dictionary<string, object> ?? ReflectionHelper_Shared.ObjectToDictionary<TParamType>(whereParam, ReflectionHelper_Shared.PARAM_PREFIX);
+				whereParamMap = whereParam as Dictionary<string, (object, Type)> ?? ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(whereParam);
 				foreach (var kvp in whereParamMap)
 					paramDictAlias.Add(kvp.Key, kvp.Value);
 			}
 			whereSql = queryInfo.SQL + " WHERE " + whereSql;
-			queryInfo = new QueryInfo { SQL = whereSql, ParameterMap = paramDictAlias };
+			queryInfo = QueryInfo.Create(sql: whereSql, parameterMap: paramDictAlias);
 			return queryInfo;
 		}// Update<T, TParamType>()
 		#endregion
 
 		#region UpdateRaw<T>()
-		internal static QueryInfo UpdateRaw<T>(T obj, Predicate<string> excludedProperties = null, string tableName = null, Dictionary<string, object> dict = null) where T : class
+		internal static QueryInfo UpdateRaw<T>(
+			T obj,
+			Predicate<string> excludedProperties = null,
+			string tableName = null,
+			Dictionary<string, (object, Type)> dict = null
+		) where T : class
 		{
 			if (tableName == null) tableName = obj.AsSqlName();
 			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
-			var dictNew = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
+			var dictNew = new Dictionary<string, (object, Type)>(dictCount, Util.FastStringComparer.Instance);
 
 			int i = 0;
 			string currentKey, paramName;
@@ -117,7 +135,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			}//foreach
 
 			if (i == 0) throw new ArgumentException($"{nameof(excludedProperties)} predicate is false for all property names.", nameof(excludedProperties));
-			var result = new QueryInfo { SQL = sb.ToString(), ParameterMap = dictNew };
+			var result = QueryInfo.Create(sql: sb.ToString(), parameterMap: dictNew);
 			return result;
 		}// UpdateRaw<T>()
 		#endregion
@@ -135,10 +153,10 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (string.IsNullOrEmpty(whereSql)) throw new ArgumentNullException("whereSql");
 
 			string sql = "DELETE FROM " + tableName + " WHERE " + whereSql;
-			var whereParamMap = default(Dictionary<string, object>);
+			var whereParamMap = default(Dictionary<string, (object, Type)>);
 
-			if (whereParam != null) whereParamMap = whereParam as Dictionary<string, object> ?? ReflectionHelper_Shared.ObjectToDictionary<TParamType>(whereParam, ReflectionHelper_Shared.PARAM_PREFIX);
-			var result = new QueryInfo { SQL = sql, ParameterMap = whereParamMap };
+			if (whereParam != null) whereParamMap = whereParam as Dictionary<string, (object, Type)> ?? ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(whereParam);
+			var result = QueryInfo.Create(sql: sql, parameterMap: whereParamMap);
 			return result;
 		}// Delete<TParamType>()
 		#endregion
@@ -150,7 +168,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id"; // "S" is source; "T" is target
 			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
-			var dictParams = new Dictionary<string, object>(dictCount, Util.FastStringComparer.Instance);
+			var dictParams = new Dictionary<string, (object, Type)>(dictCount, Util.FastStringComparer.Instance);
 
 			string currentKey, currentKeyBracketed, paramName;
 
@@ -220,7 +238,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				sbSql.Append(")\n");
 			}
 
-			var result = new QueryInfo { SQL = sbSql.ToString(), ParameterMap = dictParams };
+			var result = QueryInfo.Create(sql: sbSql.ToString(), parameterMap: dictParams);
 			return result;
 		}//Upsert()
 		#endregion

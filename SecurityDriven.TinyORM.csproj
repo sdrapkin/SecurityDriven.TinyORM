@@ -31,6 +31,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\SecurityDriven.TinyORM.XML</DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -47,6 +48,9 @@
       <HintPath>packages\System.Threading.Tasks.Extensions.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallerIdentity.cs" />
@@ -55,7 +59,9 @@
     <Compile Include="DbContext.cs" />
     <Compile Include="Extensions\CommandExtensions.cs" />
     <Compile Include="Extensions\DynamicListExtensions.cs" />
+    <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Helpers\T.cs" />
     <Compile Include="Helpers\QB.cs" />
     <Compile Include="Helpers\SequentialGuid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -66,7 +72,6 @@
     <Compile Include="SqlCommandSetWrapper.cs" />
     <Compile Include="QueryBatch.cs" />
     <Compile Include="Utils\New.cs" />
-    <Compile Include="Utils\ObjectFactory.cs" />
     <Compile Include="Utils\ReflectionHelper_Setter.cs" />
     <Compile Include="Utils\ReflectionHelper_Getter.cs" />
     <Compile Include="Utils\ReflectionHelper_ParameterizedGetter.cs" />
@@ -76,7 +81,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE.md" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="README.md" />
     <None Include="TinyORM.snk" />
     <None Include="TODO.md" />

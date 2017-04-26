@@ -18,9 +18,9 @@ namespace SecurityDriven.TinyORM.Utils
 		{
 			FastStringComparer() { }
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			public bool Equals(string x, string y) { return string.Equals(x, y); }
+			public bool Equals(string x, string y) => string.Equals(x, y);
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			public int GetHashCode(string obj) { return obj.GetHashCode(); }
+			public int GetHashCode(string obj) => obj.GetHashCode();
 			public static readonly FastStringComparer Instance = new FastStringComparer();
 		}//class FastStringComparer
 

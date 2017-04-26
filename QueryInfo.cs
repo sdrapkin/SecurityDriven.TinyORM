@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SecurityDriven.TinyORM
 {
@@ -7,31 +8,30 @@ namespace SecurityDriven.TinyORM
 	public class QueryInfo
 	{
 		public string SQL { get; set; }
-		public Dictionary<string, object> ParameterMap { get; set; }
+		public Dictionary<string, (object, Type)> ParameterMap { get; set; }
 
-		public QueryInfo() { }
-		public QueryInfo(string sql, Dictionary<string, object> parameterMap)
+		QueryInfo() { }
+		QueryInfo(string sql, Dictionary<string, (object, Type)> parameterMap)
 		{
 			this.SQL = sql;
 			this.ParameterMap = parameterMap;
 		}
 
-		public static QueryInfo CreateQueryInfo(string sql)
-		{
-			return CreateQueryInfo<string>(sql, null);
-		}// CreateQueryInfo()
+		public static QueryInfo Create(string sql) => Create<string>(sql, null);
 
-		public static QueryInfo CreateQueryInfo<TParamType>(string sql, TParamType param) where TParamType : class
+		public static QueryInfo Create<TParamType>(string sql, TParamType param) where TParamType : class
 		{
 			var queryInfo = new QueryInfo() { SQL = sql };
 			if (param == null)
 			{
-				queryInfo.ParameterMap = new Dictionary<string, object>(0);
+				queryInfo.ParameterMap = new Dictionary<string, (object, Type)>(0);
 				return queryInfo;
 			}
 
-			queryInfo.ParameterMap = ReflectionHelper_Shared.ObjectToDictionary<TParamType>(param, ReflectionHelper_Shared.PARAM_PREFIX);
+			queryInfo.ParameterMap = ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(param);
 			return queryInfo;
-		}// CreateQueryInfo<TParamType>()
+		}// Create<TParamType>()
+
+		public static QueryInfo Create(string sql, Dictionary<string, (object, Type)> parameterMap) => new QueryInfo(sql, parameterMap);
 	}// class QueryInfo
 }// ns

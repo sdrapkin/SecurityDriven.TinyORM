@@ -7,19 +7,11 @@ namespace SecurityDriven.TinyORM
 {
 	internal class ConnectionWrapper : IDisposable
 	{
-		public SqlConnection Connection
-		{
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			get { return connection; }
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			private set { this.connection = value; }
-		}
-
-		SqlConnection connection;
+		public SqlConnection Connection;
 		int refCount = 1;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ConnectionWrapper(SqlConnection connection) { this.connection = connection; }//ctor
+		public ConnectionWrapper(SqlConnection connection) { this.Connection = connection; }//ctor
 
 		#region IDisposable Members
 		/// <summary>Decrement the reference count and, if refcount is 0, close the underlying connection.</summary>
@@ -30,12 +22,11 @@ namespace SecurityDriven.TinyORM
 			{
 				try
 				{
-					this.connection.Dispose();
+					var tmpConnection = this.Connection;
+					this.Connection = null;
+					tmpConnection.Dispose();
 				}
-				finally
-				{
-					this.connection = null;
-				}
+				finally { }
 			}
 		}//Dispose()
 		#endregion

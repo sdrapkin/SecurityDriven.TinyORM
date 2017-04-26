@@ -8,143 +8,153 @@ using System.Runtime.CompilerServices;
 namespace SecurityDriven.TinyORM.Extensions
 {
 	using Utils;
+	using Helpers;
 
-	using DbString = Tuple<string, StringType>;
+	using DbString = ValueTuple<string, StringType>;
 
 	internal static class CommandExtensions
 	{
-		static SqlParameter GenerateParameter(string parameterName, object data)
+		#region GenerateParameter()
+		static SqlParameter GenerateParameter(string parameterName, object parameterValue, Type parameterType)
 		{
 			var p = new SqlParameter() { ParameterName = parameterName };
-			var stringType = StringType.NVARCHAR;
 
-			if (data is ValueType dataValue)
+			if (parameterValue == null)
+			{
+				var dbType = typeMap[parameterType];
+				p.DbType = dbType;
+				if (dbType == DbType.Binary) p.Size = -1;
+				p.Value = DBNull.Value;
+				return p;
+			}
+
+			if (parameterValue is ValueType dataValue)
 			{
 				// if data is DateTime, switch to higher precision of DateTime2
-				if (dataValue is DateTime dataDateTime)
-				{
-					p.DbType = DbType.DateTime2;
-					p.Value = data;
-					return p;
-				}
+				if (parameterType == T<DateTime>.TypeOf) p.DbType = DbType.DateTime2;
+
+				p.Value = parameterValue;
+				return p;
 			}
 			else
 			{
+				var stringType = StringType.NVARCHAR;
+
 				// check if data is DbString
-				if (data is DbString dbString)
+				if (parameterValue is DbString dbString)
 				{
-					data = dbString.Item1;
+					parameterValue = dbString.Item1;
 					stringType = dbString.Item2;
 					p.DbType = (DbType)stringType;
 				}
 
-				// check if data is regular string
-				if (data is string dataString)
+				switch (parameterValue)
 				{
-					int lenThreshold = (stringType == StringType.VARCHAR || stringType == StringType.CHAR) ? MAX_ANSI_STRING_LENGTH : MAX_UNICODE_STRING_LENGTH;
-					p.Size = dataString.Length > lenThreshold ? -1 : lenThreshold;
-					p.Value = data;
-					return p;
-				}
+					// check if data is regular string
+					case string dataString:
+						int lenThreshold = (stringType == StringType.NVARCHAR || stringType == StringType.NCHAR) ? MAX_UNICODE_STRING_LENGTH : MAX_ANSI_STRING_LENGTH;
+						p.Size = dataString.Length > lenThreshold ? -1 : lenThreshold;
+						p.Value = parameterValue;
+						return p;
 
-				// check if data is NULL
-				if (data is Type dataType)
-				{
-					var dbType = typeMap[dataType];
-					p.DbType = dbType;
-					if (dbType == DbType.Binary) p.Size = -1;
-					p.Value = DBNull.Value;
-					return p;
-				}
+					// check if data is NULL
+					case Type type:
+						var dbType = typeMap[type];
+						p.DbType = dbType;
+						if (dbType == DbType.Binary) p.Size = -1;
+						p.Value = DBNull.Value;
+						return p;
 
-				if (data is DataTable dataTable)
-				{
-					p.SqlDbType = SqlDbType.Structured;
-					p.TypeName = dataTable.TableName;
-					p.Value = dataTable;
-					return p;
-				}
+					// check if data is TVP
+					case DataTable dataTable:
+						p.SqlDbType = SqlDbType.Structured;
+						p.TypeName = dataTable.TableName;
+						p.Value = dataTable;
+						return p;
+				}//switch on parameterValue type
 			}// data is not a struct
-			p.Value = data;
+
+			p.Value = parameterValue;
 			return p;
 		}// GenerateParameter()
+		#endregion
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static void SetParameters(this SqlCommand command, object obj, Type objType)
+		static void ProcessParameter(ref SqlCommand command, ref SqlParameterCollection sqlParameterCollection, ref string name, ref object value, ref Type type)
 		{
-			var objPropertyValueDictionary = ObjectFactory.ObjectToDictionary(obj, objType, parameterize: true);
-			SetParameters(command, objPropertyValueDictionary);
-		}// SetParameters()
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		static void SetParameters<T>(this SqlCommand command, T obj) where T : class
-		{
-			var objPropertyValueDictionary = ReflectionHelper_Shared.ObjectToDictionary<T>(obj, ReflectionHelper_Shared.PARAM_PREFIX);
-			SetParameters(command, objPropertyValueDictionary);
-		}// SetParameters<T>()
-
-		private static void SetParameters(this SqlCommand command, Dictionary<string, object> objPropertyValueDictionary)
-		{
-			var paramCol = command.Parameters;
-
-			object propValue;
-			string propName;
-			int count;
-
-			if (objPropertyValueDictionary.Count > 0)
+			if (value is IEnumerable propValueEnumerable && !(value is string s) && !(value is byte[] b))
 			{
-				var objPropertyValueDictionaryEnumerator = objPropertyValueDictionary.GetEnumerator();
-				while (objPropertyValueDictionaryEnumerator.MoveNext())
-				{
-					var kvp = objPropertyValueDictionaryEnumerator.Current;
-					propName = kvp.Key;
-					propValue = kvp.Value;
+				int count = 0;
+				Type enumerableType = null;
 
-					if (propValue is IEnumerable propValueEnumerable && !(propValue is string s) && !(propValue is byte[] b))
-					{
-						count = 0;
-						//if (propName[0] != '@') propName = '@' + propName;
-						foreach (var item in propValueEnumerable)
-						{
-							++count;
-							paramCol.Add(GenerateParameter(parameterName: propName + count.IntToString(), data: item));
-						}
-						command.CommandText = command.CommandText.Replace(propName, count == 0 ? "SELECT TOP 0 0" : GetParamString(count, propName));
-					}
-					else
-					{
-						paramCol.Add(GenerateParameter(parameterName: propName, data: propValue));
-					}
+				foreach (var item in propValueEnumerable)
+				{
+					++count;
+					if (count == 1) enumerableType = item.GetType();
+					var sqlParameter = GenerateParameter(parameterName: name + count.IntToString(), parameterValue: item, parameterType: enumerableType);
+					sqlParameterCollection.Add(sqlParameter);
+				}
+				command.CommandText = command.CommandText.Replace(name, count == 0 ? "SELECT TOP 0 0" : GetParamString(count, name));
+			}
+			else
+			{
+				var sqlParameter = GenerateParameter(parameterName: name, parameterValue: value, parameterType: type);
+				sqlParameterCollection.Add(sqlParameter);
+			}
+		}// ProcessParameter()
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static void SetParametersFromContainerObject<Param>(this SqlCommand command, Param param) where Param : class
+		{
+			var sqlParameterCollection = command.Parameters;
+			var paramGettersDictionary = ReflectionHelper_ParameterizedGetter<Param>.Getters;
+
+			if (paramGettersDictionary.Count > 0)
+			{
+				var paramGettersDictionaryEnumerator = paramGettersDictionary.GetEnumerator();
+				while (paramGettersDictionaryEnumerator.MoveNext())
+				{
+					var kvp = paramGettersDictionaryEnumerator.Current;
+					var propName = kvp.Key;
+
+					(object propValue, Type propType) = kvp.Value(param);
+					ProcessParameter(ref command, ref sqlParameterCollection, ref propName, ref propValue, ref propType);
 				}// while over property dictionary enumerator
 			}// if dictionary count > 0
-		}// SetParameters()
+		}// SetParametersFromContainerObject<Param>()
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetParametersFromDictionary(this SqlCommand command, Dictionary<string, (object, Type)> paramDictionary)
+		{
+			var sqlParameterCollection = command.Parameters;
+
+			if (paramDictionary.Count > 0)
+			{
+				var paramDictionaryEnumerator = paramDictionary.GetEnumerator();
+				while (paramDictionaryEnumerator.MoveNext())
+				{
+					var kvp = paramDictionaryEnumerator.Current;
+					var propName = kvp.Key;
+
+					(object propValue, Type propType) = kvp.Value;
+					ProcessParameter(ref command, ref sqlParameterCollection, ref propName, ref propValue, ref propType);
+				}// while over property dictionary enumerator
+			}// if dictionary count > 0
+		}// SetParametersFromDictionary()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param) where TParamType : class
 		{
 			if (param != null)
 			{
-				var dictParam = param as Dictionary<string, object>;
-				if (dictParam != null)
-					command.SetParameters(dictParam);
+				var dictParam = param as Dictionary<string, (object, Type)>;
+				if (dictParam == null)
+					command.SetParametersFromContainerObject<TParamType>(param);
 				else
-					command.SetParameters<TParamType>(param);
+					command.SetParametersFromDictionary(dictParam);
 			}
 		}// SetupParameters<TParamType>()
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param, Type explicitParamType) where TParamType : class
-		{
-			if (param != null)
-			{
-				var dictParam = param as Dictionary<string, object>;
-				if (dictParam != null)
-					command.SetParameters(dictParam);
-				else
-					command.SetParameters(param, explicitParamType);
-			}
-		}// SetupParameters<TParamType>()
-
+		#region internal constants
 		internal const string CTX_PARAMETER_NAME = "@@ctx";
 		internal const string CT_PARAMETER_NAME = "@@ct";
 		internal const string CI_PARAMETER_NAME = "@@ci";
@@ -162,13 +172,16 @@ namespace SecurityDriven.TinyORM.Extensions
 		internal const int MAX_UNICODE_STRING_LENGTH = 4000;
 		internal const int MAX_ANSI_STRING_LENGTH = MAX_UNICODE_STRING_LENGTH * 2;
 		internal const int MAX_CONTEXT_INFO_LENGTH = 128;
+		#endregion
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void SetupMetaParameters(this SqlCommand command, byte[] callerIdentity, string callerMemberName, string callerFilePath, int callerLineNumber)
 		{
+			var parametersCollection = command.Parameters;
 			// CONTEXT parameter
 			{
 				var callerIdentityContextParameter = new SqlParameter(CTX_PARAMETER_NAME, SqlDbType.Binary, 16) { Value = callerIdentity };
-				command.Parameters.Add(callerIdentityContextParameter);
+				parametersCollection.Add(callerIdentityContextParameter);
 			}
 			// CODETRACE parameter
 			{
@@ -176,7 +189,7 @@ namespace SecurityDriven.TinyORM.Extensions
 				{
 					Value = MakeCodeTraceString(callerMemberName, callerFilePath, callerLineNumber)
 				};
-				command.Parameters.Add(codetraceParameter);
+				parametersCollection.Add(codetraceParameter);
 			}
 			// CONTEXT_INFO parameter
 			{
@@ -184,10 +197,11 @@ namespace SecurityDriven.TinyORM.Extensions
 				{
 					Value = Util.ZeroLengthArray<byte>.Value
 				};
-				command.Parameters.Add(ciParameter);
+				parametersCollection.Add(ciParameter);
 			}
 		}// SetupMetaParameters()
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void Setup<TParamType>(
 			this SqlCommand command,
 			string sql,
@@ -200,17 +214,13 @@ namespace SecurityDriven.TinyORM.Extensions
 			int callerLineNumber = 0
 		) where TParamType : class
 		{
+			command.CommandText = sql;
 			if (!sqlTextOnly)
 			{
-				command.CommandText = sql;
-				SetupParameters(command, param);
+				SetupParameters<TParamType>(command, param);
 				SetupMetaParameters(command, callerIdentity, callerMemberName, callerFilePath, callerLineNumber);
 
 				command.CommandText = string.Concat(CMD_HEADER, command.CommandText, CMD_FOOTER);
-			}
-			else
-			{
-				command.CommandText = sql;
 			}
 
 			if (commandTimeout.HasValue)

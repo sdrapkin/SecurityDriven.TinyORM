@@ -59,6 +59,285 @@ namespace SecurityDriven.TinyORM.Tests
 			Console.WriteLine(tinyormVersion);
 		}// ConnectionTest()
 
+		public class POCO
+		{
+			public int Answer { get; set; }
+		}
+		[TestMethod]
+		public async Task SanityTest()
+		{
+			{
+				var query = await db.QueryAsync("select [Answer] = @a + @b", new { @a = 123, @b = 2 });
+				Assert.IsTrue(query.First().Answer == 125);
+
+				var rows = await db.QueryAsync("select [Answer] = 2 + 3");
+				int expectedAnswer = 5;
+				Assert.IsTrue(rows[0].Answer == expectedAnswer);
+				Assert.IsTrue(rows[0]["Answer"] == expectedAnswer);
+				Assert.IsTrue(rows[0][0] == expectedAnswer);
+
+				// single static projection:
+				var poco = (rows[0] as RowStore).ToObject<POCO>();
+				var poco_via_factory = (rows[0] as RowStore).ToObject(() => new POCO());
+				Assert.IsTrue(poco.Answer == expectedAnswer);
+				Assert.IsTrue(poco_via_factory.Answer == expectedAnswer);
+			}
+
+			{
+				// static projection of a list of rows:
+				var ids = await db.QueryAsync("select [Answer] = object_id from sys.objects;");
+				var pocoArray = ids.ToObjectArray<POCO>();
+				var pocoArray_via_factory = ids.ToObjectArray(() => new POCO());
+				for (int i = 0; i < pocoArray.Length; ++i)
+				{
+					Assert.IsTrue(ids[i].Answer > 0);
+					Assert.IsTrue(pocoArray[i].Answer > 0);
+					Assert.IsTrue(pocoArray_via_factory[i].Answer > 0);
+				}
+			}
+			int low = 10, high = 40;
+			{
+				var ids1 = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id between @low and @high;",
+					new { @low = low, @high = high });
+
+				Assert.IsTrue(ids1.Count > 0);
+				foreach (var row in ids1)
+					Assert.IsTrue(row.Answer >= low && row.Answer <= high);
+			}
+			{
+				var ids2 = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id in (@range)",
+					new { @range = Enumerable.Range(low, high - low) });
+
+				Assert.IsTrue(ids2.Count > 0);
+				foreach (var row in ids2)
+					Assert.IsTrue(row.Answer >= low && row.Answer <= high);
+			}
+			{
+				var emptyResult = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id = @id",
+					new { @id = default(int?) }); // or "@id = (int?)null"
+				Assert.IsTrue(emptyResult.Count == 0);
+			}
+			{
+				var parameters = new Dictionary<string, (object, Type)>();
+				parameters.Add("@low", low.WithType());
+				parameters.Add("@high", high.WithType());
+
+				var ids = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id between @low and @high;", parameters);
+				foreach (var row in ids)
+					Assert.IsTrue(row.Answer >= low && row.Answer <= high);
+			}
+			{
+				var rows = await db.QueryAsync("select [Answer] = 2 + 3");
+				Assert.IsFalse(rows[0].Answer is FieldNotFound); // False
+				Assert.IsTrue(rows[0].answer is FieldNotFound); // True
+			}
+		}
+
+		[TestMethod]
+		public async Task SanityTestTransactions()
+		{
+			{
+				var sql = "SELECT [TID]=transaction_id FROM sys.dm_tran_current_transaction; SELECT [TIL]=transaction_isolation_level FROM sys.dm_exec_sessions WHERE session_id = @@SPID";
+				var (q1_tid, q1_til) = await db.QueryMultipleAsync(sql);
+				var (q2_tid, q2_til) = await db.QueryMultipleAsync(sql);
+
+				Assert.IsTrue(q1_til[0].TIL == 2);
+				Assert.IsTrue(q2_til[0].TIL == 2);
+				Assert.IsTrue(q1_tid[0].TID != q2_tid[0].TID);
+
+				/* "2" is READ COMMITTED
+				[transaction_id, 38185] [transaction_isolation_level, 2]
+				[transaction_id, 38188] [transaction_isolation_level, 2]
+				*/
+			}
+			{
+				var sql = "SELECT [TID]=transaction_id FROM sys.dm_tran_current_transaction; SELECT [TIL]=transaction_isolation_level FROM sys.dm_exec_sessions WHERE session_id = @@SPID";
+				using (var ts = DbContext.CreateTransactionScope())
+				{
+					var (q1_tid, q1_til) = await db.QueryMultipleAsync(sql);
+					var (q2_tid, q2_til) = await db.QueryMultipleAsync(sql);
+
+					Assert.IsTrue(q1_til[0].TIL == 2);
+					Assert.IsTrue(q2_til[0].TIL == 2);
+					Assert.IsTrue(q1_tid[0].TID == q2_tid[0].TID);
+
+					ts.Complete();
+				}
+				/*
+				[transaction_id, 41154] [transaction_isolation_level, 2]
+				[transaction_id, 41154] [transaction_isolation_level, 2]
+				*/
+			}
+			{
+				var sql = "SELECT [TID]=transaction_id FROM sys.dm_tran_current_transaction; SELECT [TIL]=transaction_isolation_level FROM sys.dm_exec_sessions WHERE session_id = @@SPID";
+				using (var ts = DbContext.CreateTransactionScope(
+					TransactionScopeOption.Required,
+					new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }))
+				{
+					var (q1_tid, q1_til) = await db.QueryMultipleAsync(sql);
+					var (q2_tid, q2_til) = await db.QueryMultipleAsync(sql);
+
+					Assert.IsTrue(q1_til[0].TIL == 4);
+					Assert.IsTrue(q2_til[0].TIL == 4);
+					Assert.IsTrue(q1_tid[0].TID == q2_tid[0].TID);
+
+					ts.Complete();
+				}
+				/* "4" is SERIALIZABLE
+				[transaction_id, 42943] [transaction_isolation_level, 4]
+				[transaction_id, 42943] [transaction_isolation_level, 4]
+				*/
+			}
+		}
+
+		[TestMethod]
+		public async Task SanityTestConcurrentIndependentTransactions()
+		{
+			// 'outerScope' is some preexisting ambient transaction beyond your control
+			using (var outerScope = DbContext.CreateTransactionScope())
+			{
+				var start = DateTime.UtcNow;
+				var q1Task = Task.Run(async () =>
+				{
+					using (var ts1 = DbContext.CreateTransactionScope(TransactionScopeOption.RequiresNew))
+					{
+						var result = await db.QueryAsync("WAITFOR DELAY '00:00:02'; SELECT [Answer] = 2;");
+						ts1.Complete();
+						return result;
+					}
+				});
+
+				var q2Task = Task.Run(async () =>
+				{
+					using (var ts2 = DbContext.CreateTransactionScope(TransactionScopeOption.RequiresNew))
+					{
+						var result = await db.QueryAsync("WAITFOR DELAY '00:00:02'; SELECT [Answer] = 3;");
+						ts2.Complete();
+						return result;
+					}
+				});
+
+				await Task.WhenAll(q1Task, q2Task);
+				var end = DateTime.UtcNow;
+				var time = (end - start);
+
+				Assert.IsTrue(q1Task.Result[0].Answer + q2Task.Result[0].Answer == 5);
+
+				var totalSeconds = time.TotalSeconds;
+				Console.WriteLine($"{time.TotalSeconds} seconds.");
+				Assert.IsTrue(totalSeconds > 2.00 && totalSeconds < 2.1);
+
+				outerScope.Complete();
+			}
+		}
+
+		[TestMethod]
+		public async Task SanityTestQueryTimeouts()
+		{
+			{
+				var start = DateTime.UtcNow;
+				var result = await db.QueryAsync("WAITFOR DELAY '00:00:01'; SELECT [Answer] = 123;");
+				var duration = DateTime.UtcNow - start;
+
+				Assert.IsTrue(result[0].Answer == 123);
+				Assert.IsTrue(duration.TotalSeconds > 1.0);
+			}
+			{
+				try
+				{
+					var start = DateTime.UtcNow;
+					var result = await db.QueryAsync("WAITFOR DELAY '00:00:02'; SELECT [Answer] = 123;", commandTimeout: 1);
+					var duration = DateTime.UtcNow - start;
+				}
+				catch (SqlException sqlEx)
+				{
+					if (sqlEx.Message.StartsWith("Execution Timeout Expired.")) return;
+				}
+				Assert.Fail("Did not time out as expected");
+			}
+		}
+
+		[TestMethod]
+		public async Task SanityTestBatchedQueries()
+		{
+			{
+				var batch1 = QueryBatch.Create();
+				for (int i = 0; i < 50; ++i)
+					batch1.AddQuery("select [Answer] = 2;");
+
+				int result1 = await db.CommitQueryBatchAsync(batch1);
+				Console.WriteLine(result1);
+				Assert.IsTrue(result1 == -1);
+				// -1
+				// No rows were changed per batch; 1 batch only (default batch size is 50).
+
+				var batch2 = QueryBatch.Create();
+				for (int i = 0; i < 65; ++i)
+					batch2.AddQuery("select [Answer] = 2;");
+
+				int result2 = await db.CommitQueryBatchAsync(batch2);
+				Console.WriteLine(result2);
+				Assert.IsTrue(result2 == -1);
+				// -1
+				// No rows were changed per batch; 1 batch only (short 2nd batch of 15 queries merged into the 1st batch)
+				// short batch is 50/3 = 16 queries or less
+			}
+			{
+				var batch3 = QueryBatch.Create();
+				for (int i = 0; i < 70; ++i)
+					batch3.AddQuery("select [Answer] = 2;");
+
+				int result3 = await db.CommitQueryBatchAsync(batch3);
+				Console.WriteLine(result3);
+				Assert.IsTrue(result3 == -2);
+				// -2
+				// No rows were changed per batch; 2 batches:
+				// 1st batch of 50 queries and 2nd batch of 20 queries
+				// last batch is larger than short batch - triggers an additional db call
+			}
+			{
+				var batch1 = QueryBatch.Create();
+				var batch2 = QueryBatch.Create();
+				for (int i = 0; i < 40; ++i)
+				{
+					batch1.AddQuery("select [Answer] = 1;");
+					batch2.AddQuery("select [Answer] = 2;");
+				}
+				batch2.Append(batch1); // adding batch1 queries to batch2
+				int result = await db.CommitQueryBatchAsync(QueryBatch.Create(new[] { batch1, batch2 }));
+				Console.WriteLine(result);
+				Assert.IsTrue(result == -3);
+				// -3
+				// No rows were changed per batch; 3 batches:
+				// 1st batch of 50 queries; 2nd batch of 50 queries; 3rd batch of 20 queries
+				// last batch is larger than short batch - triggers an additional db call
+			}
+			{
+				var batch = QueryBatch.Create();
+				for (int i = 0; i < 43; ++i)
+					batch.AddQuery("select [Answer] = 1;");
+
+				int result = await db.CommitQueryBatchAsync(queryBatch: batch, batchSize: 10);
+				Console.WriteLine(result);
+				Assert.IsTrue(result == -4);
+				// -4
+				// 3 batches with 10 queries and last batch with 13 queries
+			}
+			{
+				var dbTemp = DbContext.Create(db.ConnectionString);
+				var batch = QueryBatch.Create();
+				for (int i = 0; i < 43; ++i)
+					batch.AddQuery("select [Answer] = 1;");
+
+				dbTemp.BatchSize = 10;
+				int result = await dbTemp.CommitQueryBatchAsync(batch);
+				Console.WriteLine(result);
+				Assert.IsTrue(result == -4);
+				// -4
+				// 3 batches with 10 queries and last batch with 13 queries
+			}
+		}
+
 		[TestMethod]
 		public async Task NullTest()
 		{

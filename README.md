@@ -38,7 +38,7 @@ If you are serious about SQL Server, give **TinyORM** a try (even if you're a `D
 
 ## Simple TinyORM query ##
 ```csharp
-var db = DbContext.CreateDbContext(connString);
+var db = DbContext.Create(connString);
 var query = await db.QueryAsync("select [Answer] = @a + @b", new { @a = 123, @b = 2 });
 
 Console.WriteLine(query.First().Answer); // prints "125"

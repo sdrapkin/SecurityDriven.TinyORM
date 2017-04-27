@@ -33,7 +33,7 @@ namespace SecurityDriven.TinyORM
 		}// static ctor
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static DbContext CreateDbContext(string connectionString) => new DbContext(connectionString);
+		public static DbContext Create(string connectionString) => new DbContext(connectionString);
 
 		#region QueryAsync()
 		public async ValueTask<IReadOnlyList<dynamic>> QueryAsync<TParamType>(

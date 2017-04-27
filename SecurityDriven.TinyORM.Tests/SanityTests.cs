@@ -27,8 +27,8 @@ namespace SecurityDriven.TinyORM.Tests
 		[ClassInitialize]
 		public static void Initialize(TestContext testContext)
 		{
-			db = DbContext.CreateDbContext(connString);
-			marsdb = DbContext.CreateDbContext(marsConnString);
+			db = DbContext.Create(connString);
+			marsdb = DbContext.Create(marsConnString);
 		}
 
 		[ClassCleanup]

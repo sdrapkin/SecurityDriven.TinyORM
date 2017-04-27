@@ -140,9 +140,9 @@ namespace SecurityDriven.TinyORM
 			int cumulativeResult = 0;
 			int queryBatchCount = queryBatch.queryList.Count;
 			int index = -1;
-			int shortBatchSize = batchSize / 3;
 
 			if (batchSize == 0) batchSize = this.BatchSize;
+			int shortBatchSize = batchSize / 3;
 
 			var callerIdentity = callerIdentityDelegate();
 

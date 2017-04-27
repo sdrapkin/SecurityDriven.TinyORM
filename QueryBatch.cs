@@ -20,7 +20,12 @@ namespace SecurityDriven.TinyORM
 
 		public QueryBatch AddQuery<TParamType>(string sql, TParamType param) where TParamType : class
 		{
-			var paramDictionary = ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(param);
+			Dictionary<string, (object, Type)> paramDictionary;
+			if (param == null)
+				paramDictionary = new Dictionary<string, (object, Type)>(0);
+			else
+				paramDictionary = ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(param);
+
 			var query = new NameValueTypeTuple(sql, paramDictionary);
 			queryList.Add(query);
 			return this;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace SecurityDriven.TinyORM.Extensions
 {
@@ -6,6 +7,7 @@ namespace SecurityDriven.TinyORM.Extensions
 
 	public static class Extensions
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static (TT, Type) WithType<TT>(this TT entity) => (entity, T<TT>.TypeOf);
 	}// class Extensions
 }//ns

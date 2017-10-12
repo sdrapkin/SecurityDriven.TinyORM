@@ -572,6 +572,9 @@ namespace SecurityDriven.TinyORM.Tests
 		[TestMethod]
 		public async Task TestXACT_ABORT()
 		{
+			var sanity = await db.QueryAsync("SELECT 2 + 2;");
+			Assert.IsTrue((int)sanity[0][0] == (2 + 2));
+
 			await Assert.ThrowsExceptionAsync<TransactionAbortedException>(async () =>
 			{
 				using (var ts = DbContext.CreateTransactionScope())

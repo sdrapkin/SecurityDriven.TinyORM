@@ -31,7 +31,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			if (parameterValue is ValueType dataValue)
 			{
 				// if data is DateTime, switch to higher precision of DateTime2
-				if (parameterType == T<DateTime>.TypeOf) p.DbType = DbType.DateTime2;
+				if (parameterType == s_DateTimeType) p.DbType = DbType.DateTime2;
 
 				p.Value = parameterValue;
 				return p;
@@ -77,6 +77,8 @@ namespace SecurityDriven.TinyORM.Extensions
 			p.Value = parameterValue;
 			return p;
 		}// GenerateParameter()
+
+		static readonly Type s_DateTimeType = typeof(DateTime);
 		#endregion
 
 		static void ProcessParameter(ref SqlCommand command, ref SqlParameterCollection sqlParameterCollection, ref string name, ref object value, ref Type type)

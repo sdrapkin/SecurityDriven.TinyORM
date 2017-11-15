@@ -61,7 +61,6 @@
     <Compile Include="Extensions\DynamicListExtensions.cs" />
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Helpers\T.cs" />
     <Compile Include="Helpers\QB.cs" />
     <Compile Include="Helpers\SequentialGuid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

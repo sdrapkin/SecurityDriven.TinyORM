@@ -6,7 +6,7 @@
 ## [Documentation](https://github.com/sdrapkin/SecurityDriven.TinyORM/wiki): [wiki](https://github.com/sdrapkin/SecurityDriven.TinyORM/wiki) ##
 
 ## Features: ##
-1.  Focused on **SQL Server** (any `SqlClient`-based db engine).
+1.  Focused on **SQL Server** (any `SqlClient`-based db engine). [Azure SQL](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-technical-overview) is supported as well.
 2.  **Intuitive, tiny, simple API**. This is usually the hardest part for libraries to get right.
 3.  **Does not obscure or reinvent `T-SQL`**. If you prefer APIs that hide `T-SQL` incompetence, look [elsewhere](https://en.wikipedia.org/wiki/Entity_Framework).
 4.  **Very fast.** As fast as competition (`Dapper`, `OrmLite`, `PetaPoco`, `Linq2Sql`, etc. [benchmarks](https://gist.github.com/anonymous/5e11edaeaec86753c475cbc13c30d6dd)). 

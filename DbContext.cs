@@ -202,7 +202,7 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
-			using (var ts = DbContext.CreateTransactionScope())
+			using (var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value))
 			{
 				using (var connWrapper = this.GetWrappedConnection())
 				{
@@ -268,6 +268,13 @@ namespace SecurityDriven.TinyORM
 		#region CreateTransactionScope()
 
 		static readonly TransactionOptions defaultTransactionOptions = new TransactionOptions { IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(90) };
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static TransactionScope CreateTransactionScope(int timeout)
+		{
+			var customTransactionOptions = new TransactionOptions { IsolationLevel = defaultTransactionOptions.IsolationLevel, Timeout = TimeSpan.FromSeconds(timeout) };
+			return CreateTransactionScope(TransactionScopeOption.Required, customTransactionOptions);
+		}// CreateTransactionScope(int timeout)
 
 		/// <summary>
 		/// Creates a new TransactionScope if none exists, or joins an existing one.
@@ -343,7 +350,7 @@ namespace SecurityDriven.TinyORM
 		) where TParamType : class
 		{
 			bool result;
-			using (var ts = DbContext.CreateTransactionScope())
+			using (var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value))
 			{
 				using (var connWrapper = this.GetWrappedConnection())
 				{

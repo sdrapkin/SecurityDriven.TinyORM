@@ -92,7 +92,7 @@ namespace SecurityDriven.TinyORM.Extensions
 				{
 					++count;
 					if (count == 1) enumerableType = item.GetType();
-					var sqlParameter = GenerateParameter(parameterName: name + count.IntToString(), parameterValue: item, parameterType: enumerableType);
+					var sqlParameter = GenerateParameter(parameterName: name + Util.IntToString(ref count), parameterValue: item, parameterType: enumerableType);
 					sqlParameterCollection.Add(sqlParameter);
 				}
 				command.CommandText = command.CommandText.Replace(name, count == 0 ? "SELECT TOP 0 0" : GetParamString(count, name));
@@ -232,7 +232,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static string MakeCodeTraceString(string callerMemberName, string callerFilePath, int callerLineNumber)
 		{
-			return string.Concat(callerFilePath, callerLineNumber.IntToString(), callerMemberName);
+			return string.Concat(callerFilePath, Util.IntToString(ref callerLineNumber), callerMemberName);
 		}
 
 		static string GetParamString(int count, string propName)
@@ -240,7 +240,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			var sb = Utils.StringBuilderCache.Acquire((propName.Length + 1) * (count + 1)).Append(propName).Append('1');
 			for (int i = 2; i <= count; ++i)
 			{
-				sb.Append(',').Append(propName).Append(i.IntToString());
+				sb.Append(',').Append(propName).Append(Util.IntToString(ref i));
 			}
 			return Utils.StringBuilderCache.GetStringAndRelease(sb);
 		}// GetParamString()

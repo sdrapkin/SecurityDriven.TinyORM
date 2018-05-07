@@ -11,7 +11,8 @@ namespace SecurityDriven.TinyORM.Utils
 		static readonly string[] _intToStringCache = Enumerable.Range(0, MAX_CACHED_INT_TO_STRING_ITEMS).Select(i => i.ToString(InvariantNFI)).ToArray();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static string IntToString(this int value) => value >= 0 && value < MAX_CACHED_INT_TO_STRING_ITEMS ? _intToStringCache[value] : value.ToString(InvariantNFI);
+		public static string IntToString(ref int value) => value >= 0 && value < MAX_CACHED_INT_TO_STRING_ITEMS ? _intToStringCache[value] : value.ToString(InvariantNFI);
+
 		//========== IntToString() end ============
 
 		internal sealed class FastStringComparer : System.Collections.Generic.IEqualityComparer<string>

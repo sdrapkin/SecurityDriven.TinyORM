@@ -46,7 +46,7 @@ namespace SecurityDriven.TinyORM
 			foreach (var kvp in this.propertyMap)
 			{
 				if (propertyMap.TryGetValue(key = kvp.Key, out var val) && !object.Equals(val, kvp.Value))
-					diffSet.Add(key, default(bool));
+					diffSet.Add(key, default);
 			}
 			return diffSet.Count > 0 ? propertyName => diffSet.ContainsKey(propertyName) : NoDifference;
 		}// Diff()

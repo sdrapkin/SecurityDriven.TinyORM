@@ -267,7 +267,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CreateTransactionScope()
 
-		static readonly TransactionOptions defaultTransactionOptions = new TransactionOptions { IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(90) };
+		static TransactionOptions defaultTransactionOptions = new TransactionOptions { IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(90) };
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		static TransactionScope CreateTransactionScope(int timeout)

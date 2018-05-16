@@ -110,18 +110,15 @@ namespace SecurityDriven.TinyORM.Extensions
 			var sqlParameterCollection = command.Parameters;
 			var paramGettersDictionary = ReflectionHelper_ParameterizedGetter<Param>.Getters;
 
-			if (paramGettersDictionary.Count > 0)
+			var paramGettersDictionaryEnumerator = paramGettersDictionary.GetEnumerator();
+			while (paramGettersDictionaryEnumerator.MoveNext())
 			{
-				var paramGettersDictionaryEnumerator = paramGettersDictionary.GetEnumerator();
-				while (paramGettersDictionaryEnumerator.MoveNext())
-				{
-					var kvp = paramGettersDictionaryEnumerator.Current;
-					var propName = kvp.Key;
+				var kvp = paramGettersDictionaryEnumerator.Current;
+				var propName = kvp.Key;
 
-					(object propValue, Type propType) = kvp.Value(param);
-					ProcessParameter(ref command, ref sqlParameterCollection, ref propName, ref propValue, ref propType);
-				}// while over property dictionary enumerator
-			}// if dictionary count > 0
+				(object propValue, Type propType) = kvp.Value(param);
+				ProcessParameter(ref command, ref sqlParameterCollection, ref propName, ref propValue, ref propType);
+			}// while over property dictionary enumerator
 		}// SetParametersFromContainerObject<Param>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -829,5 +829,12 @@ namespace SecurityDriven.TinyORM.Tests
 			Assert.IsTrue(c.Single()[0] == 3);
 			Assert.IsTrue(d.Single()[0] == 4);
 		}
+
+		[TestMethod]
+		public async Task TestEmptyParameterObject()
+		{
+			var result = await db.QueryAsync("select 1;", new { });
+			Assert.IsTrue(result.Single()[0] == 1);
+		}
 	}//class
 }//ns

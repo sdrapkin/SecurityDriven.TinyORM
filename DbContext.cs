@@ -41,7 +41,7 @@ namespace SecurityDriven.TinyORM
 			TParamType param,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -56,7 +56,7 @@ namespace SecurityDriven.TinyORM
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -70,7 +70,7 @@ namespace SecurityDriven.TinyORM
 			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -87,7 +87,7 @@ namespace SecurityDriven.TinyORM
 			TParamType param,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -101,7 +101,7 @@ namespace SecurityDriven.TinyORM
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -115,7 +115,7 @@ namespace SecurityDriven.TinyORM
 			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -130,7 +130,7 @@ namespace SecurityDriven.TinyORM
 		public async ValueTask<int> CommitQueryBatchAsync(
 			QueryBatch queryBatch,
 			int batchSize = 0,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -196,7 +196,7 @@ namespace SecurityDriven.TinyORM
 			TParamType param,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -343,7 +343,7 @@ namespace SecurityDriven.TinyORM
 			Func<SqlDataReader, CancellationToken, ValueTask<bool>> actionAsync,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0
@@ -376,7 +376,7 @@ namespace SecurityDriven.TinyORM
 			Func<SqlDataReader, CancellationToken, ValueTask<bool>> actionAsync,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
-			CancellationToken cancellationToken = new CancellationToken(),
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string callerMemberName = null,
 			[CallerFilePath] string callerFilePath = null,
 			[CallerLineNumber] int callerLineNumber = 0

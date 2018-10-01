@@ -133,5 +133,52 @@ namespace SecurityDriven.TinyORM.Helpers
 			};
 			return new DateTime(longStruct.Value + UuidStartTicks, DateTimeKind.Utc);
 		}// ExtractDateTimeUtc()
+
+#if Experimental
+		/// <summary>
+		/// Returns SMALLEST guid with an approximate utc timestamp. Useful for time-based database range searches.  
+		/// </summary>
+		public static Guid LowerGuidForDateTimeUtc(DateTime utc)
+		{
+			var longStruct = new LongStruct { Value = utc.Ticks - UuidStartTicks };
+			var guidStruct = new GuidStruct
+			{
+				BA = (byte)(longStruct.B7 & 0x0F),
+				BB = longStruct.B6,
+				BC = longStruct.B5,
+				BD = longStruct.B4,
+				BE = longStruct.B3,
+				BF = longStruct.B2
+			};
+
+			return guidStruct.Value;
+		}// LowerGuidForDateTimeUtc()
+
+		/// <summary>
+		/// Returns LARGEST guid with an approximate utc timestamp. Useful for time-based database range searches.  
+		/// </summary>
+		public static Guid UpperGuidForDateTimeUtc(DateTime utc)
+		{
+			var longStruct = new LongStruct { Value = utc.Ticks - UuidStartTicks };
+			var guidStruct = new GuidStruct
+			{
+				IntValue0123 = -1, // 0xFF_FF_FF_FF
+				ShortValue45 = -1, // 0xFF_FF
+				B6 = 0xFF,
+				B7 = 0xFF,
+				B8 = 0xFF,
+				B9 = 0xFF,
+
+				BA = (byte)(longStruct.B7 | 0xF0),
+				BB = longStruct.B6,
+				BC = longStruct.B5,
+				BD = longStruct.B4,
+				BE = longStruct.B3,
+				BF = longStruct.B2
+			};
+
+			return guidStruct.Value;
+		}// UpperGuidForDateTimeUtc()
+#endif
 	}//class SequentialGuid
 }//ns

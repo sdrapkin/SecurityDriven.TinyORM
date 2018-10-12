@@ -301,10 +301,10 @@ namespace SecurityDriven.TinyORM
 		public static TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption, TransactionOptions transactionOptions)
 		{
 			var current_ts = Transaction.Current;
-			if (current_ts == null)
+			if (current_ts == null || scopeOption == TransactionScopeOption.RequiresNew)
 				return new TransactionScope(scopeOption, transactionOptions, TransactionScopeAsyncFlowOption.Enabled);
-			else
-				return new TransactionScope(scopeOption, new TransactionOptions { IsolationLevel = current_ts.IsolationLevel }, TransactionScopeAsyncFlowOption.Enabled);
+
+			return new TransactionScope(scopeOption, new TransactionOptions { IsolationLevel = current_ts.IsolationLevel, Timeout = transactionOptions.Timeout }, TransactionScopeAsyncFlowOption.Enabled);
 		}//CreateTransactionScope()
 		#endregion
 

@@ -836,5 +836,45 @@ namespace SecurityDriven.TinyORM.Tests
 			var result = await db.QueryAsync("select 1;", new { });
 			Assert.IsTrue(result.Single()[0] == 1);
 		}
+
+		[TestMethod]
+		public async Task TestTransactionScopes_and_ParallelQueries()
+		{
+			var sw = Stopwatch.StartNew();
+
+			using (var outer_ts = DbContext.CreateTransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead }))
+			{
+				await ParallelQueries().ConfigureAwait(false);
+				outer_ts.Complete();
+			}//outer_ts
+			sw.Stop();
+			Assert.IsTrue(sw.Elapsed < TimeSpan.FromSeconds(2.0), $"Took {sw.Elapsed}"); // all parallel queries should take 1 second each.
+
+			async Task ParallelQueries()
+			{
+				var tasks = new List<Task<IReadOnlyList<dynamic>>>();
+
+				for (int i = 1; i <= 5; ++i)
+					tasks.Add(
+						((Func<Task<IReadOnlyList<dynamic>>>)(async () =>
+						{
+							var j = i;
+							using (var ts = DbContext.CreateTransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = (j % 2 == 0 ? IsolationLevel.ReadCommitted : IsolationLevel.Serializable) }))
+							{
+								var result = await db.QueryAsync($"WAITFOR DELAY '00:00:01'; select [Answer]={j}, [TID] = CURRENT_TRANSACTION_ID(), transaction_isolation_level from sys.dm_exec_sessions where session_id = @@spid;").ConfigureAwait(false);
+								ts.Complete();
+								return result;
+							}
+						}))()
+					);
+
+				await Task.WhenAll(tasks).ConfigureAwait(false);
+				var sum = tasks.Sum(t => t.Result.First().Answer);
+				Assert.IsTrue(sum == 15);
+
+				for (int i = 1; i <= 5; ++i)
+					Assert.IsTrue(tasks[i - 1].Result.First().transaction_isolation_level == (i % 2 == 0 ? 2 : 4)); // 2=ReadCommitted; 4=Serializable
+			}// ParallelQueries(s)
+		}// TestTransactionScopes()
 	}//class
 }//ns

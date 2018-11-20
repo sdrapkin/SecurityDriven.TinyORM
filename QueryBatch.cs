@@ -23,6 +23,8 @@ namespace SecurityDriven.TinyORM
 			Dictionary<string, (object, Type)> paramDictionary;
 			if (param == null)
 				paramDictionary = new Dictionary<string, (object, Type)>(0);
+			else if (param is Dictionary<string, (object, Type)> _paramDictionary)
+				paramDictionary = _paramDictionary;
 			else
 				paramDictionary = ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(param);
 

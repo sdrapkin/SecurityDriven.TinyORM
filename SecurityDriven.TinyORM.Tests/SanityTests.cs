@@ -336,6 +336,14 @@ namespace SecurityDriven.TinyORM.Tests
 				// -4
 				// 3 batches with 10 queries and last batch with 13 queries
 			}
+			{
+				var queryBatch = QueryBatch.Create();
+				var queryInfo = QueryInfo.Create("declare @foo table(id int not null); insert @foo values (@id), (@id), (@id);", new { id = 37 });
+				queryBatch.AddQuery(queryInfo);
+				int result = await db.CommitQueryBatchAsync(queryBatch);
+				Console.WriteLine(result);
+				Assert.IsTrue(result == 3);
+			}
 		}
 
 		[TestMethod]

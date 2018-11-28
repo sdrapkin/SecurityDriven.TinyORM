@@ -85,7 +85,7 @@ namespace SecurityDriven.TinyORM.Tests
 
 			{
 				// static projection of a list of rows:
-				var ids = await db.QueryAsync("select [Answer] = object_id from sys.objects;");
+				var ids = await db.QueryAsync("select [Answer] = object_id from sys.objects where is_ms_shipped = 1;");
 				var pocoArray = ids.ToObjectArray<POCO>();
 				var pocoArray_via_factory = ids.ToObjectArray(() => new POCO());
 				for (int i = 0; i < pocoArray.Length; ++i)

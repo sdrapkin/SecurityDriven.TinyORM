@@ -27,9 +27,9 @@ namespace SecurityDriven.TinyORM
 
 		static DbContext()
 		{
-			ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
-			int desiredMinWorkerThreadsNumber = Environment.ProcessorCount + 2;
-			if (workerThreads < desiredMinWorkerThreadsNumber) ThreadPool.SetMinThreads(desiredMinWorkerThreadsNumber, completionPortThreads);
+			ThreadPool.GetMinThreads(out var minWorkerThreads, out var minCompletionPortThreads);
+			int desiredMinWorkerThreads = Environment.ProcessorCount << 1;
+			if (minWorkerThreads < desiredMinWorkerThreads) ThreadPool.SetMinThreads(desiredMinWorkerThreads, minCompletionPortThreads);
 		}// static ctor
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

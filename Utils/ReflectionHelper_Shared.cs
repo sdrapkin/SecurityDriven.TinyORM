@@ -46,6 +46,7 @@ namespace SecurityDriven.TinyORM.Utils
 
 			var pInstance = Expression.Parameter(type);
 			var parameterExpressionArray = new[] { pInstance };
+			var expressionArrayOf2 = new Expression[2];
 			foreach (PropertyInfo p in source)
 			{
 				if (p.GetIndexParameters().Length != 0) continue;
@@ -53,7 +54,9 @@ namespace SecurityDriven.TinyORM.Utils
 				if (getMethod != null)
 				{
 					UnaryExpression body = Expression.Convert(Expression.Call(pInstance, getMethod), ObjectType);
-					var valueTupleBody = Expression.New(_ValueTupleCtor, new Expression[] { body, Expression.Constant(p.PropertyType) });
+					expressionArrayOf2[0] = body;
+					expressionArrayOf2[1] = Expression.Constant(p.PropertyType);
+					var valueTupleBody = Expression.New(_ValueTupleCtor, expressionArrayOf2);
 					dictionary[prefix + p.Name] = Expression.Lambda<Func<T, (object, Type)>>(valueTupleBody, parameterExpressionArray).Compile();
 				}
 			}//foreach PropertyInfo

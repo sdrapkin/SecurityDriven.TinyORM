@@ -105,7 +105,7 @@ namespace SecurityDriven.TinyORM.Helpers
 					k: uuidStruct.B2);
 			}// NewSequentialGuid()
 
-			[DllImport("rpcrt4.dll", SetLastError = true)]
+			[DllImport("rpcrt4.dll", SetLastError = true), System.Security.SuppressUnmanagedCodeSecurity]
 			static extern int UuidCreateSequential(out Guid guid);
 
 			static Guid GetSequentialUuid()

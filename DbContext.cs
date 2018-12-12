@@ -209,7 +209,7 @@ namespace SecurityDriven.TinyORM
 					var conn = connWrapper.Connection;
 					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-					using (var comm = new SqlCommand(null, conn))
+					var comm = new SqlCommand(null, conn);
 					{
 						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
@@ -357,7 +357,7 @@ namespace SecurityDriven.TinyORM
 					var conn = connWrapper.Connection;
 					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-					using (var comm = new SqlCommand(null, conn))
+					var comm = new SqlCommand(null, conn);
 					{
 						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 						using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))

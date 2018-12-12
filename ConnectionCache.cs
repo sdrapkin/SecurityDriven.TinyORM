@@ -6,7 +6,6 @@ using System.Transactions;
 
 namespace SecurityDriven.TinyORM
 {
-
 	using Utils;
 
 	internal static class ConnectionCache

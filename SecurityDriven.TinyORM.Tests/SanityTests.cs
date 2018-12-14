@@ -253,6 +253,11 @@ namespace SecurityDriven.TinyORM.Tests
 				{
 					if (sqlEx.Message.StartsWith("Execution Timeout Expired.")) return;
 				}
+				catch (Exception ex)
+				{
+					ex.GetHashCode();
+					throw;
+				}
 				Assert.Fail("Did not time out as expected");
 			}
 		}

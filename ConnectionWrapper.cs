@@ -15,18 +15,13 @@ namespace SecurityDriven.TinyORM
 
 		#region IDisposable Members
 		/// <summary>Decrement the reference count and, if refcount is 0, close the underlying connection.</summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Dispose()
 		{
 			int count = Interlocked.Decrement(ref refCount);
 			if (count == 0)
 			{
-				try
-				{
-					var tmpConnection = this.Connection;
-					this.Connection = null;
-					tmpConnection.Dispose();
-				}
-				finally { }
+				this.Connection.Close();
 			}
 		}//Dispose()
 		#endregion

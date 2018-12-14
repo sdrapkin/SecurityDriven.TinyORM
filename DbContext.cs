@@ -207,18 +207,17 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var conn = connWrapper.Connection;
+					var comm = new SqlCommand(null, conn);
+					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+
 					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-					var comm = new SqlCommand(null, conn);
+					using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
 					{
-						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
-						using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-						{
-							var result = FetchResultSets(reader);
-							ts.Complete();
-							return result;
-						}//reader
-					}//comm
+						var result = FetchResultSets(reader);
+						ts.Complete();
+						return result;
+					}//reader
 				}//connWrapper
 			}//ts
 		}// InternalQueryAsync<TParamType>()
@@ -355,16 +354,15 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var conn = connWrapper.Connection;
+					var comm = new SqlCommand(null, conn);
+					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+
 					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-					var comm = new SqlCommand(null, conn);
+					using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 					{
-						comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
-						using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
-						{
-							result = await actionAsync(reader, cancellationToken).ConfigureAwait(false);
-						}//reader
-					}//comm
+						result = await actionAsync(reader, cancellationToken).ConfigureAwait(false);
+					}//reader
 					ts.Complete();
 				}//connWrapper
 			}//ts

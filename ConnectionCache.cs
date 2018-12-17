@@ -25,9 +25,12 @@ namespace SecurityDriven.TinyORM
 			ConnectionWrapper wrappedConnection = null;
 			ref readonly var _connectionString = ref db.connectionString;
 			var connectionWrapperContainer = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: _getNewConnectionCache);
+			bool __lockWasTaken = false;
 
-			lock (connectionWrapperContainer)
+			try
 			{
+				System.Threading.Monitor.Enter(connectionWrapperContainer, ref __lockWasTaken);
+
 				ref var _containerConnectionString = ref connectionWrapperContainer.ConnectionString;
 				ref var _containerConnectionWrapper = ref connectionWrapperContainer.ConnectionWrapper;
 				while (true)
@@ -71,7 +74,11 @@ namespace SecurityDriven.TinyORM
 					}
 					break;
 				}// while (true)
-			}//lock
+			}// try-enter-lock
+			finally
+			{
+				if (__lockWasTaken) System.Threading.Monitor.Exit(connectionWrapperContainer);
+			}// release lock
 
 			wrappedConnection.IncrementUseCount();
 			return wrappedConnection;

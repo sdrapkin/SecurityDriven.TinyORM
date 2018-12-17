@@ -157,8 +157,12 @@ namespace SecurityDriven.TinyORM
 			{
 				using (var connWrapper = this.GetWrappedConnection())
 				{
+					var conn = connWrapper.Connection;
+
 					foreach (var batch in batches)
 					{
+						if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+
 						using (var sqlCommandSetWrapper = new SqlCommandSetWrapper())
 						{
 							foreach (var element in batch)
@@ -172,17 +176,14 @@ namespace SecurityDriven.TinyORM
 
 								command.SetupMetaParameters(callerIdentity.UserIdAsBytes, callerMemberName, callerFilePath, callerLineNumber);
 								sqlCommandSetWrapper.Append(command);
-							}//element loop
+							}//foreach element loop
 
-							var conn = connWrapper.Connection;
-							if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 							sqlCommandSetWrapper.Connection = conn;
-
 							sqlCommandSetWrapper.CommandTimeout = 0; // set infinite timeout for all sql commands in SqlCommandSet
 							cumulativeResult += sqlCommandSetWrapper.ExecuteNonQuery();
 						}// using SqlCommandSetWrapper
 						if (cancellationToken.IsCancellationRequested) break;
-					}//batch loop
+					}//foreach batch loop
 				}//connWrapper
 				ts.Complete();
 			}//ts
@@ -207,10 +208,10 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var conn = connWrapper.Connection;
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
-
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
 					using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
 					{
@@ -354,10 +355,10 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var conn = connWrapper.Connection;
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
-
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
 					using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 					{

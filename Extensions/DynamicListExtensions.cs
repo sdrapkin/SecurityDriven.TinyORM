@@ -25,9 +25,8 @@ namespace SecurityDriven.TinyORM.Extensions
 			RowStore firstElement = listOfRowStore[0];
 
 			var settersArray = new Action<T, object>[firstElement.RowValues.Length];
-			var settersEnumerator = ReflectionHelper_Setter<T>.Setters.GetEnumerator();
 			var fieldMap = firstElement.Schema.FieldMap;
-			var factory = objectFactory;
+			var settersEnumerator = ReflectionHelper_Setter<T>.Setters.GetEnumerator();
 
 			while (settersEnumerator.MoveNext())
 			{
@@ -38,21 +37,18 @@ namespace SecurityDriven.TinyORM.Extensions
 
 			Parallel.For(0, newListCount, i =>
 			{
-				unchecked
+				T objT = objectFactory();
+				newList[i] = objT;
+				object[] rowValues = listOfRowStore[i].RowValues;
+
+				for (int j = 0; j < rowValues.Length; ++j)
 				{
-					T objT = factory();
-					newList[i] = objT;
-					object[] rowValues = listOfRowStore[i].RowValues;
+					var setter = settersArray[j];
+					if (setter == null) continue;
 
-					for (int j = 0; j < rowValues.Length; ++j)
-					{
-						var setter = settersArray[j];
-						if (setter == null) continue;
-
-						object val = rowValues[j];
-						setter(objT, val == DBNull.Value ? null : val);
-					}//for
-				}// unchecked
+					object val = rowValues[j];
+					setter(objT, val == DBNull.Value ? null : val);
+				}//for
 			});
 			return newList;
 		}// ToObjectArray<T>()

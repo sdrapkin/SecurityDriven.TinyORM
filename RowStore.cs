@@ -21,6 +21,7 @@ namespace SecurityDriven.TinyORM
 
 		public object this[int i]
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get
 			{
 				var result = this.RowValues[i];
@@ -30,6 +31,7 @@ namespace SecurityDriven.TinyORM
 
 		public object this[string key]
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get
 			{
 				if (!TryGetIndex(key, out var index))
@@ -94,10 +96,10 @@ namespace SecurityDriven.TinyORM
 
 			while (fieldMapEnumerator.MoveNext())
 			{
-				var kvp = fieldMapEnumerator.Current;
-				if (setters.TryGetValue(kvp.Key, out var setter))
+				var kvpKey = fieldMapEnumerator.Current.Key;
+				if (setters.TryGetValue(kvpKey, out var setter))
 				{
-					var val = this[kvp.Key];
+					var val = this[kvpKey];
 					setter(result, val);
 				}
 			}
@@ -136,7 +138,7 @@ namespace SecurityDriven.TinyORM
 						optionalPropertyHashSet = new HashSet<string>(optionalProperties, Util.FastStringComparer.Instance);
 					}
 					if (optionalPropertyHashSet.Contains(kvp.Key)) { continue; }
-					THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
+				THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));
 				}
 			}//while
 			return result;

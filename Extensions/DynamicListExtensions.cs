@@ -40,14 +40,15 @@ namespace SecurityDriven.TinyORM.Extensions
 				T objT = objectFactory();
 				newList[i] = objT;
 				object[] rowValues = listOfRowStore[i].RowValues;
+				DBNull dbNullValue = DBNull.Value;
 
-				for (int j = 0; j < rowValues.Length; ++j)
+				for (i = 0; i < rowValues.Length; ++i)
 				{
-					var setter = settersArray[j];
+					var setter = settersArray[i];
 					if (setter == null) continue;
 
-					object val = rowValues[j];
-					setter(objT, val == DBNull.Value ? null : val);
+					object val = rowValues[i];
+					setter(objT, val == dbNullValue ? null : val);
 				}//for
 			});
 			return newList;

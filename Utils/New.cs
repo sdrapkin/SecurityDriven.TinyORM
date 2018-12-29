@@ -6,7 +6,7 @@ namespace SecurityDriven.TinyORM.Utils
 {
 	internal static class New<T> where T : new() // very fast object/struct factory
 	{
-		public static Func<T> Instance = DynamicModuleLambdaCompiler.GenerateFactory<T>();
+		public static readonly Func<T> Instance = DynamicModuleLambdaCompiler.GenerateFactory<T>();
 	}//class New<T>
 
 	// https://blogs.msdn.microsoft.com/seteplia/2017/02/01/dissecting-the-new-constraint-in-c-a-perfect-example-of-a-leaky-abstraction/

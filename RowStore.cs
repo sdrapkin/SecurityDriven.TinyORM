@@ -92,17 +92,19 @@ namespace SecurityDriven.TinyORM
 			var setters = ReflectionHelper_Setter<T>.Setters;
 			var result = objectFactory();
 
-			var fieldMapEnumerator = this.Schema.FieldMap.GetEnumerator();
-
-			while (fieldMapEnumerator.MoveNext())
+			var dbNullValue = DBNull.Value;
+			var fieldNames = this.Schema.FieldNames;
+			for (int i = 0; i < fieldNames.Length; ++i)
 			{
-				var kvpKey = fieldMapEnumerator.Current.Key;
-				if (setters.TryGetValue(kvpKey, out var setter))
+				if (setters.TryGetValue(fieldNames[i], out var setter))
 				{
-					var val = this[kvpKey];
-					setter(result, val);
+					var val = this.RowValues[i];
+
+					if (val != dbNullValue)
+						setter(result, val);
+					else setter(result, null);
 				}
-			}
+			}//for
 
 			return result;
 		}// ToObject<T>()

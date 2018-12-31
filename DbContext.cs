@@ -205,7 +205,8 @@ namespace SecurityDriven.TinyORM
 		{
 			using (var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value))
 			{
-				using (var connWrapper = this.GetWrappedConnection())
+				var connWrapper = this.GetWrappedConnection();
+				try
 				{
 					var conn = connWrapper.Connection;
 					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -213,13 +214,22 @@ namespace SecurityDriven.TinyORM
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					using (var reader = await comm.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false);
+					try
 					{
 						var result = FetchResultSets(reader);
 						ts.Complete();
 						return result;
-					}//reader
-				}//connWrapper
+					}//reader-try
+					finally
+					{
+						reader?.Close();
+					}
+				}//connWrapper-try
+				finally
+				{
+					connWrapper?.Dispose();
+				}
 			}//ts
 		}// InternalQueryAsync<TParamType>()
 		#endregion
@@ -233,18 +243,21 @@ namespace SecurityDriven.TinyORM
 
 			do
 			{
-				var rowStoreList = new List<RowStore>(2);
+				var rowStoreList = new List<RowStore>(8);
 				ResultSetSchema resultSchema = null;
 
 				if (reader.Read())
 				{
 					fieldCount = reader.FieldCount;
 					var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
+					var fieldNames = new string[fieldCount];
 					for (int i = 0; i < fieldCount; ++i)
 					{
-						fieldMap.Add(reader.GetName(i), i);
+						var fieldName = reader.GetName(i);
+						fieldMap.Add(fieldName, i);
+						fieldNames[i] = fieldName;
 					}
-					resultSchema = new ResultSetSchema(resultSetId, fieldMap);
+					resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
 
 					var rowValues = new object[fieldCount];
 					reader.GetValues(rowValues);
@@ -330,10 +343,7 @@ namespace SecurityDriven.TinyORM
 		ConnectionWrapper GetWrappedConnection() => ConnectionCache.GetTransactionLinkedConnection(this) ?? this.GetNewWrappedConnection();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal ConnectionWrapper GetNewWrappedConnection() => new ConnectionWrapper(CreateNewConnection());
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		SqlConnection CreateNewConnection() => new SqlConnection(this.connectionString, null);
+		internal ConnectionWrapper GetNewWrappedConnection() => new ConnectionWrapper(new SqlConnection(this.connectionString, credential: null));
 		#endregion
 
 		#region SequentialReaderAsync()

@@ -17,57 +17,62 @@ namespace SecurityDriven.TinyORM.Extensions
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
 		{
-			var listOfRowStore = (List<RowStore>)listOfDynamic;
-			int newListCount = listOfRowStore.Count;
-			T[] newList = new T[newListCount];
-			if (newListCount == 0) return newList;
-
-			RowStore firstElement = listOfRowStore[0];
-
-			var settersArray = new Action<T, object>[firstElement.RowValues.Length];
-			var fieldMap = firstElement.Schema.FieldMap;
-			var settersEnumerator = ReflectionHelper_Setter<T>.Setters.GetEnumerator();
-
-			while (settersEnumerator.MoveNext())
+			unchecked
 			{
-				var setter = settersEnumerator.Current;
-				if (fieldMap.TryGetValue(setter.Key, out var index))
-					settersArray[index] = setter.Value;
-			}
+				var listOfRowStore = (List<RowStore>)listOfDynamic;
+				int newArrayLength = listOfRowStore.Count;
+				T[] newArray = new T[newArrayLength];
+				if (newArrayLength == 0) return newArray;
 
-			Parallel.For(0, newListCount, i =>
-			{
-				T objT = objectFactory();
-				newList[i] = objT;
-				object[] rowValues = listOfRowStore[i].RowValues;
-				DBNull dbNullValue = DBNull.Value;
+				var objectFactoryAlias = objectFactory;
+				RowStore[] arrayOfRowStore = listOfRowStore.GetList_itemsArray();
+				RowStore firstElement = arrayOfRowStore[0];
 
-				for (i = 0; i < rowValues.Length; ++i)
+				var settersArray = new Action<T, object>[firstElement.RowValues.Length];
+
+				var fieldNames = firstElement.Schema.FieldNames;
+				var settersMap = ReflectionHelper_Setter<T>.Setters;
+				for (int i = 0; i < fieldNames.Length; ++i)
 				{
-					var setter = settersArray[i];
-					if (setter == null) continue;
+					if (settersMap.TryGetValue(fieldNames[i], out var setter))
+						settersArray[i] = setter;
+				}
 
-					object val = rowValues[i];
-					setter(objT, val == dbNullValue ? null : val);
-				}//for
-			});
-			return newList;
+				Parallel.For(0, newArrayLength, i =>
+				{
+					T objT = objectFactoryAlias();
+					newArray[i] = objT;
+					object[] rowValues = arrayOfRowStore[i].RowValues;
+					DBNull dbNullValue = DBNull.Value;
+
+					for (i = 0; i < rowValues.Length; ++i)
+					{
+						var setter = settersArray[i];
+						if (setter == null) continue;
+
+						object val = rowValues[i];
+						if (val != dbNullValue)
+							setter(objT, val);
+						else setter(objT, null);
+					}//for
+				});
+				return newArray;
+			}//unchecked
 		}// ToObjectArray<T>()
 
 		/// <summary>Converts a List of dynamic objects into an array of T-objects using a provided object mapper. Parallelized.</summary>
 		public static T[] ToMappedObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<dynamic, T> objectMapper)
 		{
-			unchecked
-			{
-				var listOfObject = (IReadOnlyList<object>)listOfDynamic;
-				int newListCount = listOfObject.Count;
-				T[] newList = new T[newListCount];
-				if (newListCount == 0) return newList;
-				var objectMapperAlias = objectMapper;
+			var listOfRowStore = (List<RowStore>)listOfDynamic;
+			int newArrayLength = listOfRowStore.Count;
+			T[] newArray = new T[newArrayLength];
+			if (newArrayLength == 0) return newArray;
+			var objectMapperAlias = objectMapper;
 
-				Parallel.For(0, newListCount, i => newList[i] = objectMapperAlias(listOfObject[i]));
-				return newList;
-			}
+			RowStore[] arrayOfRowStore = listOfRowStore.GetList_itemsArray();
+
+			Parallel.For(0, newArrayLength, i => newArray[i] = objectMapperAlias(arrayOfRowStore[i]));
+			return newArray;
 		}//ToMappedObjectArray<T>
 
 		/// <summary>Converts any Array or List of T into a single-column named TVP.</summary>

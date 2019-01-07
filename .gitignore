@@ -246,3 +246,6 @@ ModelManifest.xml
 
 # Backups
 *.rar
+
+# Analysis
+*.xlsx

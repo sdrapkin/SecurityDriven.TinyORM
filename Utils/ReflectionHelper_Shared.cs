@@ -8,6 +8,8 @@ namespace SecurityDriven.TinyORM.Utils
 	public static class ReflectionHelper_Shared
 	{
 		static Type ObjectType = typeof(object);
+		static readonly ConstantExpression s_DbNullValue = Expression.Constant(DBNull.Value);
+
 		public const BindingFlags propertyBindingFlags = (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 		public const string PARAM_PREFIX = "@";
 
@@ -86,10 +88,14 @@ namespace SecurityDriven.TinyORM.Utils
 			foreach (PropertyInfo p in source)
 			{
 				string pName = p.Name;
+				Type propertyType = p.PropertyType;
 				MethodInfo setMethod = p.GetSetMethod(nonPublic: true);
 				if ((setMethod != null) && (pName != "Item" || setMethod.GetParameters().Length == 1))
 				{
-					valueCast_container_0 = Expression.Convert(pValue, p.PropertyType);
+					valueCast_container_0 = Expression.Condition(
+						Expression.Equal(pValue, s_DbNullValue), // test
+						Expression.Default(propertyType), // if true
+						Expression.Convert(pValue, propertyType)); // if false
 
 					var setter = Expression.Lambda<Action<T, object>>(Expression.Call(pInstance, setMethod, valueCast_container), instance_and_value_container).Compile();
 					dictionary[pName] = setter;

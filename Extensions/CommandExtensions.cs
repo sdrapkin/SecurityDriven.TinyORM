@@ -8,14 +8,13 @@ using System.Runtime.CompilerServices;
 namespace SecurityDriven.TinyORM.Extensions
 {
 	using Utils;
-	using Helpers;
 
 	using DbString = ValueTuple<string, StringType>;
 
 	internal static class CommandExtensions
 	{
 		#region GenerateParameter()
-		static SqlParameter GenerateParameter(string parameterName, object parameterValue, Type parameterType)
+		static object GenerateParameter(string parameterName, object parameterValue, Type parameterType)
 		{
 			var p = new SqlParameter() { ParameterName = parameterName };
 
@@ -126,7 +125,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		{
 			var sqlParameterCollection = command.Parameters;
 
-			if (paramDictionary.Count > 0)
+			//if (paramDictionary.Count > 0)
 			{
 				var paramDictionaryEnumerator = paramDictionary.GetEnumerator();
 				while (paramDictionaryEnumerator.MoveNext())
@@ -143,10 +142,8 @@ namespace SecurityDriven.TinyORM.Extensions
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param) where TParamType : class
 		{
-			if (param != null)
 			{
-				var dictParam = param as Dictionary<string, (object, Type)>;
-				if (dictParam == null)
+				if (!(param is Dictionary<string, (object, Type)> dictParam))
 					command.SetParametersFromContainerObject<TParamType>(param);
 				else
 					command.SetParametersFromDictionary(dictParam);
@@ -179,12 +176,12 @@ namespace SecurityDriven.TinyORM.Extensions
 			var parametersCollection = command.Parameters;
 			// CONTEXT parameter
 			{
-				var callerIdentityContextParameter = new SqlParameter(CTX_PARAMETER_NAME, SqlDbType.Binary, 16) { Value = callerIdentity };
+				object callerIdentityContextParameter = new SqlParameter(CTX_PARAMETER_NAME, SqlDbType.Binary, 16) { Value = callerIdentity };
 				parametersCollection.Add(callerIdentityContextParameter);
 			}
 			// CODETRACE parameter
 			{
-				var codetraceParameter = new SqlParameter(CT_PARAMETER_NAME, SqlDbType.VarChar, MAX_ANSI_STRING_LENGTH)
+				object codetraceParameter = new SqlParameter(CT_PARAMETER_NAME, SqlDbType.VarChar, MAX_ANSI_STRING_LENGTH)
 				{
 					Value = MakeCodeTraceString(callerMemberName, callerFilePath, callerLineNumber)
 				};
@@ -192,7 +189,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			}
 			// CONTEXT_INFO parameter
 			{
-				var ciParameter = new SqlParameter(CI_PARAMETER_NAME, SqlDbType.VarBinary, MAX_CONTEXT_INFO_LENGTH)
+				object ciParameter = new SqlParameter(CI_PARAMETER_NAME, SqlDbType.VarBinary, MAX_CONTEXT_INFO_LENGTH)
 				{
 					Value = Util.ZeroLengthArray<byte>.Value
 				};
@@ -216,7 +213,9 @@ namespace SecurityDriven.TinyORM.Extensions
 			command.CommandText = sql;
 			if (!sqlTextOnly)
 			{
-				SetupParameters<TParamType>(command, param);
+				if (param != null)
+					SetupParameters<TParamType>(command, param);
+
 				SetupMetaParameters(command, callerIdentity, callerMemberName, callerFilePath, callerLineNumber);
 
 				command.CommandText = string.Concat(CMD_HEADER, command.CommandText, CMD_FOOTER);

@@ -16,23 +16,22 @@ namespace SecurityDriven.TinyORM
 
 		static Dictionary<string, object> GetObjectPropertiesAsDictionary<T>(T obj) where T : class
 		{
-			var rowStore = obj as RowStore;
-			if (rowStore == null)
+			if (obj is RowStore rowStore)
+			{
+				var propertyMap = new Dictionary<string, object>(rowStore.RowValues.Length, Util.FastStringComparer.Instance);
+				foreach (var kvp in rowStore.Schema.FieldMap)
+				{
+					propertyMap.Add(kvp.Key, rowStore.RowValues[kvp.Value]);
+				}
+				return propertyMap;
+			}
+			else
 			{
 				var getters = ReflectionHelper_Getter<T>.Getters;
 				var propertyMap = new Dictionary<string, object>(getters.Count, Util.FastStringComparer.Instance);
 				foreach (var kvp in getters)
 				{
 					propertyMap.Add(kvp.Key, kvp.Value(obj).Item1);
-				}
-				return propertyMap;
-			}
-			else
-			{
-				var propertyMap = new Dictionary<string, object>(rowStore.RowValues.Length, Util.FastStringComparer.Instance);
-				foreach (var kvp in rowStore.Schema.FieldMap)
-				{
-					propertyMap.Add(kvp.Key, rowStore.RowValues[kvp.Value]);
 				}
 				return propertyMap;
 			}

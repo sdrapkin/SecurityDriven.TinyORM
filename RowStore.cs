@@ -1,29 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 namespace SecurityDriven.TinyORM
 {
 	using Utils;
 
-	#region class RowStore
-	public class RowStore : System.Dynamic.DynamicObject, IEnumerable<KeyValuePair<string, object>>
+	#region struct RowStore
+	public readonly struct RowStore : IReadOnlyDictionary<string, object>, IDynamicMetaObjectProvider
 	{
 		static readonly FieldNotFound notFound = new FieldNotFound();
-		public readonly ResultSetSchema Schema;
 		public readonly object[] RowValues;
 
-		internal RowStore(ref ResultSetSchema schema, ref object[] rowValues)
-		{
-			this.Schema = schema;
-			this.RowValues = rowValues;
-		}
+		internal RowStore(object[] rowValues) => this.RowValues = rowValues;
+
+		public ResultSetSchema Schema => (ResultSetSchema)this.RowValues[this.RowValues.Length - 1];
+
+		public IEnumerable<string> Keys => this.Schema.FieldNames;
+
+		public IEnumerable<object> Values => new ArraySegment<object>(this.RowValues, 0, this.RowValues.Length - 1);
+
+		public int Count => this.RowValues.Length - 1;
 
 		public object this[int i]
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get
 			{
+				if (i == (this.RowValues.Length - 1)) throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 				var result = this.RowValues[i];
 				return result == DBNull.Value ? null : result;
 			}
@@ -56,26 +62,44 @@ namespace SecurityDriven.TinyORM
 
 		public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
 		{
-			foreach (var kvp in this.Schema.FieldMap)
+			var fieldNames = this.Schema.FieldNames;
+			var rowValues = this.RowValues;
+			for (int i = 0; i < fieldNames.Length; ++i)
 			{
-				yield return new KeyValuePair<string, object>(kvp.Key, this[kvp.Key]);
+				yield return new KeyValuePair<string, object>(fieldNames[i], RowValues[i]);
 			}
 		}
 
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-		{
-			return this.GetEnumerator();
-		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-		public override bool TryGetMember(System.Dynamic.GetMemberBinder binder, out object result)
-		{
-			result = this[binder.Name];
-			return true;
-		}
-
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public override string ToString()
 		{
 			return string.Join(Environment.NewLine, this);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool ContainsKey(string key) => this.Schema.FieldMap.ContainsKey(key);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool TryGetValue(string key, out object value)
+		{
+			if (!TryGetIndex(key, out var index))
+			{
+				value = notFound;
+				return false;
+			}
+			value = this.RowValues[index];
+			if (value == DBNull.Value)
+				value = null;
+
+			return true;
+		}
+
+		public DynamicMetaObject GetMetaObject(Expression parameter)
+		{
+			return new RowStoreMetaObject(parameter, BindingRestrictions.Empty, this);
 		}
 
 		/// <summary>
@@ -92,7 +116,7 @@ namespace SecurityDriven.TinyORM
 			var setters = ReflectionHelper_Setter<T>.Setters;
 			var result = objectFactory();
 
-			var dbNullValue = DBNull.Value;
+			//var dbNullValue = DBNull.Value;
 			var fieldNames = this.Schema.FieldNames;
 			for (int i = 0; i < fieldNames.Length; ++i)
 			{
@@ -100,9 +124,9 @@ namespace SecurityDriven.TinyORM
 				{
 					var val = this.RowValues[i];
 
-					if (val != dbNullValue)
-						setter(result, val);
-					else setter(result, null);
+					//if (val != dbNullValue)
+					setter(result, val);
+					//else setter(result, null);
 				}
 			}//for
 
@@ -145,7 +169,7 @@ namespace SecurityDriven.TinyORM
 			}//while
 			return result;
 		}// ToCheckedObject<T>()
-	}// class RowStore
+	}// struct RowStore
 	#endregion
 
 	#region FieldNotFound

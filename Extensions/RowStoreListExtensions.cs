@@ -8,18 +8,17 @@ namespace SecurityDriven.TinyORM.Extensions
 {
 	using Utils;
 
-	public static class DynamicListExtensions
+	public static class RowStoreListExtensions
 	{
-		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
+		/// <summary>Converts a List of RowStore into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic) where T : class, new() => ToObjectArray<T>(listOfDynamic, New<T>.Instance);
+		public static T[] ToObjectArray<T>(this List<RowStore> listOfRowStore) where T : class, new() => ToObjectArray<T>(listOfRowStore, New<T>.Instance);
 
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
-		public static T[] ToObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<T> objectFactory) where T : class
+		public static T[] ToObjectArray<T>(this List<RowStore> listOfRowStore, Func<T> objectFactory) where T : class
 		{
 			unchecked
 			{
-				var listOfRowStore = (List<RowStore>)listOfDynamic;
 				int newArrayLength = listOfRowStore.Count;
 				T[] newArray = new T[newArrayLength];
 				if (newArrayLength == 0) return newArray;
@@ -43,7 +42,7 @@ namespace SecurityDriven.TinyORM.Extensions
 					T objT = objectFactoryAlias();
 					newArray[i] = objT;
 					object[] rowValues = arrayOfRowStore[i].RowValues;
-					DBNull dbNullValue = DBNull.Value;
+					//DBNull dbNullValue = DBNull.Value;
 
 					for (i = 0; i < rowValues.Length; ++i)
 					{
@@ -51,19 +50,18 @@ namespace SecurityDriven.TinyORM.Extensions
 						if (setter == null) continue;
 
 						object val = rowValues[i];
-						if (val != dbNullValue)
-							setter(objT, val);
-						else setter(objT, null);
+						//if (val != dbNullValue)
+						setter(objT, val);
+						//else setter(objT, null);
 					}//for
 				});
 				return newArray;
 			}//unchecked
 		}// ToObjectArray<T>()
 
-		/// <summary>Converts a List of dynamic objects into an array of T-objects using a provided object mapper. Parallelized.</summary>
-		public static T[] ToMappedObjectArray<T>(this IReadOnlyList<dynamic> listOfDynamic, Func<dynamic, T> objectMapper)
+		/// <summary>Converts a List of RowStore into an array of T-objects using a provided object mapper. Parallelized.</summary>
+		public static T[] ToMappedObjectArray<T>(this List<RowStore> listOfRowStore, Func<RowStore, T> objectMapper)
 		{
-			var listOfRowStore = (List<RowStore>)listOfDynamic;
 			int newArrayLength = listOfRowStore.Count;
 			T[] newArray = new T[newArrayLength];
 			if (newArrayLength == 0) return newArray;
@@ -125,5 +123,5 @@ namespace SecurityDriven.TinyORM.Extensions
 		///<summary>Deconstructor.</summary>
 		public static void Deconstruct<T>(this IReadOnlyList<T> v, out T v0, out T v1, out T v2, out T v3, out T v4, out T v5, out T v6, out T v7, out T v8, out T v9) { v0 = v[0]; v1 = v[1]; v2 = v[2]; v3 = v[3]; v4 = v[4]; v5 = v[5]; v6 = v[6]; v7 = v[7]; v8 = v[8]; v9 = v[9]; }
 		#endregion
-	}// class DynamicListExtensions
+	}// class RowStoreListExtensions
 }//ns

@@ -44,18 +44,20 @@ namespace SecurityDriven.TinyORM.Tests
 
 			var firstRow = results[0];
 			int expectedAnswer = 3;
-			Assert.IsTrue(firstRow.Answer == expectedAnswer);
-			Assert.IsTrue(firstRow["Answer"] == expectedAnswer);
-			Assert.IsTrue(firstRow[0] == expectedAnswer);
-			Assert.IsTrue(firstRow.NonExistentColumn is FieldNotFound);
-			Assert.IsTrue((firstRow as RowStore).Schema.FieldMap.Count == 2);
+			Assert.IsTrue((firstRow as dynamic).Answer == expectedAnswer);
+			Assert.IsTrue((int)firstRow["Answer"] == expectedAnswer);
+			Assert.IsTrue((int)firstRow[0] == expectedAnswer);
+			Assert.IsTrue(firstRow["NonExistentColumn"] is FieldNotFound);
+			Assert.IsTrue((firstRow as dynamic).NonExistentColumn is FieldNotFound);
+
+			Assert.IsTrue(firstRow.Schema.FieldMap.Count == 2);
 
 			var secondRow = results[1];
 			expectedAnswer = 5;
-			Assert.IsTrue(secondRow.Answer == expectedAnswer);
-			((Guid)firstRow.Guid).GetHashCode();
-			Assert.IsTrue((Guid)secondRow.Guid != (Guid)firstRow.Guid);
-			Assert.IsTrue((Guid)secondRow.Guid == Guid.Empty);
+			Assert.IsTrue((int)secondRow["Answer"] == expectedAnswer);
+			((Guid)firstRow["Guid"]).GetHashCode();
+			Assert.IsTrue((Guid)secondRow["Guid"] != (Guid)firstRow["Guid"]);
+			Assert.IsTrue((Guid)secondRow["Guid"] == Guid.Empty);
 			Console.WriteLine(tinyormVersion);
 		}// ConnectionTest()
 
@@ -68,17 +70,17 @@ namespace SecurityDriven.TinyORM.Tests
 		{
 			{
 				var query = await db.QueryAsync("select [Answer] = @a + @b", new { @a = 123, @b = 2 });
-				Assert.IsTrue(query.First().Answer == 125);
+				Assert.IsTrue((int)query.First()["Answer"] == 125);
 
 				var rows = await db.QueryAsync("select [Answer] = 2 + 3");
 				int expectedAnswer = 5;
-				Assert.IsTrue(rows[0].Answer == expectedAnswer);
-				Assert.IsTrue(rows[0]["Answer"] == expectedAnswer);
-				Assert.IsTrue(rows[0][0] == expectedAnswer);
+				//Assert.IsTrue(rows[0].Answer == expectedAnswer);
+				Assert.IsTrue((int)rows[0]["Answer"] == expectedAnswer);
+				Assert.IsTrue((int)rows[0][0] == expectedAnswer);
 
 				// single static projection:
-				var poco = (rows[0] as RowStore).ToObject<POCO>();
-				var poco_via_factory = (rows[0] as RowStore).ToObject(() => new POCO());
+				var poco = rows[0].ToObject<POCO>();
+				var poco_via_factory = rows[0].ToObject(() => new POCO());
 				Assert.IsTrue(poco.Answer == expectedAnswer);
 				Assert.IsTrue(poco_via_factory.Answer == expectedAnswer);
 			}
@@ -90,9 +92,9 @@ namespace SecurityDriven.TinyORM.Tests
 				var pocoArray_via_factory = ids.ToObjectArray(() => new POCO());
 				for (int i = 0; i < pocoArray.Length; ++i)
 				{
-					Assert.IsTrue(ids[i].Answer > 0);
-					Assert.IsTrue(pocoArray[i].Answer > 0);
-					Assert.IsTrue(pocoArray_via_factory[i].Answer > 0);
+					Assert.IsTrue((int)ids[i]["Answer"] > 0);
+					Assert.IsTrue((int)pocoArray[i].Answer > 0);
+					Assert.IsTrue((int)pocoArray_via_factory[i].Answer > 0);
 				}
 			}
 			int low = 10, high = 40;
@@ -102,7 +104,7 @@ namespace SecurityDriven.TinyORM.Tests
 
 				Assert.IsTrue(ids1.Count > 0);
 				foreach (var row in ids1)
-					Assert.IsTrue(row.Answer >= low && row.Answer <= high);
+					Assert.IsTrue((int)row["Answer"] >= low && (int)row["Answer"] <= high);
 			}
 			{
 				var ids2 = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id in (@range)",
@@ -110,7 +112,7 @@ namespace SecurityDriven.TinyORM.Tests
 
 				Assert.IsTrue(ids2.Count > 0);
 				foreach (var row in ids2)
-					Assert.IsTrue(row.Answer >= low && row.Answer <= high);
+					Assert.IsTrue((int)row["Answer"] >= low && (int)row["Answer"] <= high);
 			}
 			{
 				var emptyResult = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id = @id",
@@ -124,12 +126,12 @@ namespace SecurityDriven.TinyORM.Tests
 
 				var ids = await db.QueryAsync("select [Answer] = object_id from sys.objects where object_id between @low and @high;", parameters);
 				foreach (var row in ids)
-					Assert.IsTrue(row.Answer >= low && row.Answer <= high);
+					Assert.IsTrue((int)row["Answer"] >= low && (int)row["Answer"] <= high);
 			}
 			{
 				var rows = await db.QueryAsync("select [Answer] = 2 + 3");
-				Assert.IsFalse(rows[0].Answer is FieldNotFound); // False
-				Assert.IsTrue(rows[0].answer is FieldNotFound); // True
+				Assert.IsFalse(rows[0]["Answer"] is FieldNotFound); // False
+				Assert.IsTrue(rows[0]["answer"] is FieldNotFound); // True
 			}
 		}
 
@@ -141,9 +143,9 @@ namespace SecurityDriven.TinyORM.Tests
 				var (q1_tid, q1_til) = await db.QueryMultipleAsync(sql);
 				var (q2_tid, q2_til) = await db.QueryMultipleAsync(sql);
 
-				Assert.IsTrue(q1_til[0].TIL == 2);
-				Assert.IsTrue(q2_til[0].TIL == 2);
-				Assert.IsTrue(q1_tid[0].TID != q2_tid[0].TID);
+				Assert.IsTrue((short)q1_til[0]["TIL"] == 2);
+				Assert.IsTrue((short)q2_til[0]["TIL"] == 2);
+				Assert.IsTrue((long)q1_tid[0]["TID"] != (long)q2_tid[0]["TID"]);
 
 				/* "2" is READ COMMITTED
 				[transaction_id, 38185] [transaction_isolation_level, 2]
@@ -157,9 +159,9 @@ namespace SecurityDriven.TinyORM.Tests
 					var (q1_tid, q1_til) = await db.QueryMultipleAsync(sql);
 					var (q2_tid, q2_til) = await db.QueryMultipleAsync(sql);
 
-					Assert.IsTrue(q1_til[0].TIL == 2);
-					Assert.IsTrue(q2_til[0].TIL == 2);
-					Assert.IsTrue(q1_tid[0].TID == q2_tid[0].TID);
+					Assert.IsTrue((short)q1_til[0]["TIL"] == 2);
+					Assert.IsTrue((short)q2_til[0]["TIL"] == 2);
+					Assert.IsTrue((long)q1_tid[0]["TID"] == (long)q2_tid[0]["TID"]);
 
 					ts.Complete();
 				}
@@ -177,9 +179,9 @@ namespace SecurityDriven.TinyORM.Tests
 					var (q1_tid, q1_til) = await db.QueryMultipleAsync(sql);
 					var (q2_tid, q2_til) = await db.QueryMultipleAsync(sql);
 
-					Assert.IsTrue(q1_til[0].TIL == 4);
-					Assert.IsTrue(q2_til[0].TIL == 4);
-					Assert.IsTrue(q1_tid[0].TID == q2_tid[0].TID);
+					Assert.IsTrue((short)q1_til[0]["TIL"] == 4);
+					Assert.IsTrue((short)q2_til[0]["TIL"] == 4);
+					Assert.IsTrue((long)q1_tid[0]["TID"] == (long)q2_tid[0]["TID"]);
 
 					ts.Complete();
 				}
@@ -221,7 +223,7 @@ namespace SecurityDriven.TinyORM.Tests
 				var end = DateTime.UtcNow;
 				var time = (end - start);
 
-				Assert.IsTrue(q1Task.Result[0].Answer + q2Task.Result[0].Answer == 5);
+				Assert.IsTrue((int)q1Task.Result[0]["Answer"] + (int)q2Task.Result[0]["Answer"] == 5);
 
 				var totalSeconds = time.TotalSeconds;
 				Console.WriteLine($"{time.TotalSeconds} seconds.");
@@ -239,7 +241,7 @@ namespace SecurityDriven.TinyORM.Tests
 				var result = await db.QueryAsync("WAITFOR DELAY '00:00:01'; SELECT [Answer] = 123;");
 				var duration = DateTime.UtcNow - start;
 
-				Assert.IsTrue(result[0].Answer == 123);
+				Assert.IsTrue((int)result[0]["Answer"] == 123);
 				Assert.IsTrue(duration.TotalSeconds > 1.0);
 			}
 			{
@@ -359,14 +361,14 @@ namespace SecurityDriven.TinyORM.Tests
 			var row0 = rows[0];
 			var row1 = rows[1];
 
-			Assert.IsTrue(row0.Answer == expectedAnswer);
-			Assert.IsTrue(row1.Answer == null);
+			Assert.IsTrue((int?)row0["Answer"] == expectedAnswer);
+			Assert.IsTrue((int?)row1["Answer"] == null);
 
-			Assert.IsTrue(row0["Answer"] == expectedAnswer);
-			Assert.IsTrue(row1["Answer"] == null);
+			Assert.IsTrue((int?)row0["Answer"] == expectedAnswer);
+			Assert.IsTrue((int?)row1["Answer"] == null);
 
-			Assert.IsTrue(row0[0] == expectedAnswer);
-			Assert.IsTrue(row1[0] == null);
+			Assert.IsTrue((int?)row0[0] == expectedAnswer);
+			Assert.IsTrue((int?)row1[0] == null);
 
 			var objects = rows.ToObjectArray<NullTestObject>();
 			Assert.IsTrue(objects[0].Answer == expectedAnswer);
@@ -419,7 +421,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public async Task TestBasicStringUsageAsync()
 		{
 			var query = await db.QueryAsync("select 'abc' as [Value] union all select @txt", new { txt = "def" });
-			var array = query.Select(r => r.Value).ToArray();
+			var array = query.Select(r => r["Value"] as string).ToArray();
 			CollectionAssert.AreEqual(array, new[] { "abc", "def" });
 		}
 
@@ -427,7 +429,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public async Task TestBasicStringUsageQueryFirstAsync()
 		{
 			var query = await db.QueryAsync("select 'abc' as [Value] union all select @txt", new { txt = "def" });
-			var str = query.First().Value as string;
+			var str = query.First()["Value"] as string;
 			Assert.AreEqual(str, "abc");
 		}
 
@@ -435,7 +437,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public async Task TestBasicStringUsageQueryFirstOrDefaultAsync()
 		{
 			var query = await db.QueryAsync("select null as [Value] union all select @txt", new { txt = "def" });
-			var str = query.FirstOrDefault() as string;
+			var str = query.FirstOrDefault()["Value"] as string;
 			Assert.IsNull(str);
 		}
 
@@ -443,7 +445,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public async Task TestBasicStringUsageQuerySingleAsync()
 		{
 			var query = await db.QueryAsync("select 'abc' as [Value]");
-			var str = query.Single().Value as string;
+			var str = query.Single()["Value"] as string;
 			Assert.AreEqual(str, "abc");
 		}
 
@@ -451,7 +453,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public async Task TestBasicStringUsageQuerySingleOrDefaultAsync()
 		{
 			var query = await db.QueryAsync("select null as [Value]");
-			var str = query.Single() as string;
+			var str = query.Single()["Value"] as string;
 			Assert.IsNull(str);
 		}
 
@@ -459,7 +461,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public void TestLongOperationWithCancellation()
 		{
 			CancellationTokenSource cancel = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-			var task = db.QueryAsync("waitfor delay '00:00:03';select 1", cancellationToken: cancel.Token).AsTask();
+			var task = db.QueryAsync("waitfor delay '00:00:03';select 1", cancellationToken: cancel.Token);
 			try
 			{
 				if (!task.Wait(TimeSpan.FromSeconds(2)))
@@ -478,7 +480,7 @@ namespace SecurityDriven.TinyORM.Tests
 		public async Task TestQueryDynamicAsync()
 		{
 			var row = (await db.QueryAsync("select 'abc' as [Value]")).Single();
-			string value = row.Value;
+			string value = row["Value"] as string;
 			Assert.AreEqual(value, "abc");
 		}
 
@@ -517,20 +519,26 @@ namespace SecurityDriven.TinyORM.Tests
 		[TestMethod]
 		public async Task TestMultiAsync()
 		{
-			var (q1, q2) = await db.QueryMultipleAsync("select 1; select 2");
-			Assert.IsTrue(q1.Single()[0] == 1);
-			Assert.IsTrue(q2.Single()[0] == 2);
+			var (q1, q2, q3) = await db.QueryMultipleAsync("select 1; select 2; select 3");
+			Assert.IsTrue((int)q1.Single()[0] == 1);
+			Assert.IsTrue(q1.Single().Schema.ResultSetId == 0);
+
+			Assert.IsTrue((int)q2.Single()[0] == 2);
+			Assert.IsTrue(q2.Single().Schema.ResultSetId == 1);
+
+			Assert.IsTrue((int)q3.Single()[0] == 3);
+			Assert.IsTrue(q3.Single().Schema.ResultSetId == 2);
 		}
 
 		[TestMethod]
 		public async Task TestMultiAsyncViaFirstOrDefault()
 		{
 			var (q1, q2, q3, q4, q5) = await db.QueryMultipleAsync("select 1; select 2; select 3; select 4; select 5");
-			Assert.IsTrue(q1.FirstOrDefault()[0] == 1);
-			Assert.IsTrue(q2.Single()[0] == 2);
-			Assert.IsTrue(q3.FirstOrDefault()[0] == 3);
-			Assert.IsTrue(q4.Single()[0] == 4);
-			Assert.IsTrue(q5.FirstOrDefault()[0] == 5);
+			Assert.IsTrue((int)q1.FirstOrDefault()[0] == 1);
+			Assert.IsTrue((int)q2.Single()[0] == 2);
+			Assert.IsTrue((int)q3.FirstOrDefault()[0] == 3);
+			Assert.IsTrue((int)q4.Single()[0] == 4);
+			Assert.IsTrue((int)q5.FirstOrDefault()[0] == 5);
 		}
 
 		[TestMethod]
@@ -570,7 +578,7 @@ namespace SecurityDriven.TinyORM.Tests
 
 					var count = (int)(await db.QueryAsync("select [Count]=count(1) from #literal1 where id=@foo", new { foo = 123 })).Single().Count;
 					Assert.IsTrue(count == 1);
-					int sum = (int)(await db.QueryAsync("select [Sum]=sum(id) + sum(foo) from #literal1")).Single().Sum;
+					int sum = (int)(await db.QueryAsync("select [Sum]=sum(id) + sum(foo) from #literal1")).Single()["Sum"];
 					Assert.IsTrue(sum == 123 + 456 + 1 + 2 + 3 + 4);
 				}
 				catch (Exception ex)
@@ -617,7 +625,7 @@ namespace SecurityDriven.TinyORM.Tests
 					await db.QueryAsync("create table #literalin(id int not null);", sqlTextOnly: true);
 					await db.QueryAsync("insert #literalin (id) values (@id1), (@id2), (@id3)", new { id1 = 1, id2 = 2, id3 = 3 });
 
-					var count = (await db.QueryAsync("select count(1) from #literalin where id in (@ids)", new { ids = new[] { 1, 3, 4 } }))[0][0];
+					int count = (int)(await db.QueryAsync("select count(1) from #literalin where id in (@ids)", new { ids = new[] { 1, 3, 4 } }))[0][0];
 					Assert.IsTrue(count == 2);
 				}
 			}
@@ -662,26 +670,58 @@ namespace SecurityDriven.TinyORM.Tests
 		[TestMethod]
 		public async Task TestExecuteScalarAsync()
 		{
-			int i = (await db.QueryAsync("select 123"))[0][0];
-			Assert.IsTrue(i == 123);
+			{
+				int i = (int)(await db.QueryAsync("select 123"))[0][0];
+				Assert.IsTrue(i == 123);
+			}
 
-			i = (int)(await db.QueryAsync("select cast(123 as bigint)"))[0][0];
-			Assert.IsTrue(i == 123);
-
-			long j = (await db.QueryAsync("select 123"))[0][0];
-			Assert.IsTrue(j == 123L);
-
-			j = (await db.QueryAsync("select cast(123 as bigint)"))[0][0];
-			Assert.IsTrue(j == 123L);
-
-			int? k = (await db.QueryAsync("select @i", new { i = typeof(long?) }))[0][0];
-			Assert.IsTrue(k == null);
-
-			int? m = (await db.QueryAsync("select @i", new { i = typeof(long) }))[0][0];
-			Assert.IsTrue(m == null);
-
-			int? n = (await db.QueryAsync("select @i", new { i = default(long?) }))[0][0];
-			Assert.IsTrue(n == null);
+			{
+				int i = (int)(long)(await db.QueryAsync("select cast(123 as bigint)"))[0][0];
+				Assert.IsTrue(i == 123);
+			}
+			{
+				long j = (long)(int)(await db.QueryAsync("select 123"))[0][0];
+				Assert.IsTrue(j == 123L);
+			}
+			{
+				long j = (long)(await db.QueryAsync("select cast(123 as bigint)"))[0][0];
+				Assert.IsTrue(j == 123L);
+			}
+			{
+				// should work since "long?" to "int?" is convertible for null
+				long? k = (int?)(await db.QueryAsync("select @i", new { i = typeof(long?) }))[0][0];
+				Assert.IsTrue(k == null);
+			}
+			{
+				await Assert.ThrowsExceptionAsync<InvalidCastException>(async () =>
+				{
+					int? k = (int?)(await db.QueryAsync("select @i", new { i = (long?)123 }))[0][0];
+				}); // should throw, because "long?" to "int?" is not convertible for non-null
+			}
+			{
+				// should work since "int?" to "long?" is convertible for non-null
+				long? k = (int?)(await db.QueryAsync("select @i", new { i = (int?)123 }))[0][0];
+				Assert.IsTrue(k == 123L);
+			}
+			{
+				// should work because the query returns NULL, which is convertible to any nullable struct
+				int? m = (int?)(await db.QueryAsync("select @i", new { i = typeof(long) }))[0][0];
+				Assert.IsTrue(m == null);
+			}
+			{
+				await Assert.ThrowsExceptionAsync<InvalidCastException>(async () =>
+				{
+					int? m = (int?)(await db.QueryAsync("select @i", new { i = (long)123 }))[0][0];
+				}); // should throw, because "long" to "int?" is not convertible for non-null
+			}
+			{
+				int? n = (int?)(await db.QueryAsync("select @i", new { i = default(long?) }))[0][0];
+				Assert.IsTrue(n == null);
+			}
+			{
+				long? p = (long?)(await db.QueryAsync("select @i", new { i = default(long?) }))[0][0];
+				Assert.IsTrue(p == null);
+			}
 		}
 
 		[TestMethod]
@@ -710,11 +750,11 @@ namespace SecurityDriven.TinyORM.Tests
 					@AddressName [AddressName],
 					@AddressPersonId [AddressPersonId]", p);
 
-			Assert.IsTrue(result.First().Occupation == "grillmaster");
-			Assert.IsTrue(result.First().PersonId == 2);
-			Assert.IsTrue(result.First().NumberOfLegs == 1);
-			Assert.IsTrue(result.First().AddressName == "bobs burgers");
-			Assert.IsTrue(result.First().AddressPersonId == 2);
+			Assert.IsTrue((string)result.First()["Occupation"] == "grillmaster");
+			Assert.IsTrue((int)result.First()["PersonId"] == 2);
+			Assert.IsTrue((int)result.First()["NumberOfLegs"] == 1);
+			Assert.IsTrue((string)result.First()["AddressName"] == "bobs burgers");
+			Assert.IsTrue((int)result.First()["AddressPersonId"] == 2);
 		}
 
 		[TestMethod]
@@ -740,11 +780,11 @@ namespace SecurityDriven.TinyORM.Tests
 
 			var query = await db.QueryAsync(sql, parameters);
 
-			Assert.IsTrue(query[0].Col1 == null && query[0].Col2 == 1);
-			Assert.IsTrue(query[1].Col1 == 2 && query[1].Col2 == null);
-			Assert.IsTrue(query[2].Col1 == 4 && query[2].Col2 == 5);
-			Assert.IsTrue(query[3].Col1 == null && query[3].Col2 == 7);
-			Assert.IsTrue(query[4].Col1 == 8 && query[4].Col2 == null);
+			Assert.IsTrue((int?)query[0]["Col1"] == null && (int?)query[0]["Col2"] == 1);
+			Assert.IsTrue((int?)query[1]["Col1"] == 2 && (int?)query[1]["Col2"] == null);
+			Assert.IsTrue((int?)query[2]["Col1"] == 4 && (int?)query[2]["Col2"] == 5);
+			Assert.IsTrue((int?)query[3]["Col1"] == null && (int?)query[3]["Col2"] == 7);
+			Assert.IsTrue((int?)query[4]["Col1"] == 8 && (int?)query[4]["Col2"] == null);
 		}
 
 		[TestMethod]
@@ -818,7 +858,7 @@ namespace SecurityDriven.TinyORM.Tests
                 select @@Name
                 ", new { Id = 1, Name = default(string) })).Single();
 
-			Assert.IsTrue(id[0] == 2);
+			Assert.IsTrue((int)id[0] == 2);
 		}
 
 		[TestMethod]
@@ -826,7 +866,7 @@ namespace SecurityDriven.TinyORM.Tests
 		{
 			try
 			{
-				var data = (await db.QueryAsync("select 1 union all select 2; RAISERROR('after select', 16, 1);"));
+				var data = (await db.QueryMultipleAsync("select 1 union all select 2; RAISERROR('after select', 16, 1);").ConfigureAwait(false));
 				Assert.Fail();
 			}
 			catch (SqlException ex) when (ex.Message == "after select") { }
@@ -837,17 +877,17 @@ namespace SecurityDriven.TinyORM.Tests
 		{
 			var (a, b, c, d) = await db.QueryMultipleAsync("select 1; select 2; select @x; select 4", new { x = 3 });
 
-			Assert.IsTrue(a.Single()[0] == 1);
-			Assert.IsTrue(b.Single()[0] == 2);
-			Assert.IsTrue(c.Single()[0] == 3);
-			Assert.IsTrue(d.Single()[0] == 4);
+			Assert.IsTrue((int)a.Single()[0] == 1);
+			Assert.IsTrue((int)b.Single()[0] == 2);
+			Assert.IsTrue((int)c.Single()[0] == 3);
+			Assert.IsTrue((int)d.Single()[0] == 4);
 		}
 
 		[TestMethod]
 		public async Task TestEmptyParameterObject()
 		{
 			var result = await db.QueryAsync("select 1;", new { });
-			Assert.IsTrue(result.Single()[0] == 1);
+			Assert.IsTrue((int)result.Single()[0] == 1);
 		}
 
 		[TestMethod]
@@ -865,11 +905,11 @@ namespace SecurityDriven.TinyORM.Tests
 
 			async Task ParallelQueries()
 			{
-				var tasks = new List<Task<IReadOnlyList<dynamic>>>();
+				var tasks = new List<Task<IReadOnlyList<RowStore>>>();
 
 				for (int i = 1; i <= 5; ++i)
 					tasks.Add(
-						((Func<Task<IReadOnlyList<dynamic>>>)(async () =>
+						((Func<Task<IReadOnlyList<RowStore>>>)(async () =>
 						{
 							var j = i;
 							using (var ts = DbContext.CreateTransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = (j % 2 == 0 ? IsolationLevel.ReadCommitted : IsolationLevel.Serializable) }))
@@ -882,11 +922,11 @@ namespace SecurityDriven.TinyORM.Tests
 					);
 
 				await Task.WhenAll(tasks).ConfigureAwait(false);
-				var sum = tasks.Sum(t => t.Result.First().Answer);
+				var sum = tasks.Sum(t => (int)t.Result.First()["Answer"]);
 				Assert.IsTrue(sum == 15);
 
 				for (int i = 1; i <= 5; ++i)
-					Assert.IsTrue(tasks[i - 1].Result.First().transaction_isolation_level == (i % 2 == 0 ? 2 : 4)); // 2=ReadCommitted; 4=Serializable
+					Assert.IsTrue((short)tasks[i - 1].Result.First()["transaction_isolation_level"] == (i % 2 == 0 ? 2 : 4)); // 2=ReadCommitted; 4=Serializable
 			}// ParallelQueries(s)
 		}// TestTransactionScopes()
 	}//class

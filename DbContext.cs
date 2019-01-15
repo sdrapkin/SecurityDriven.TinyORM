@@ -36,7 +36,8 @@ namespace SecurityDriven.TinyORM
 		public static DbContext Create(string connectionString) => new DbContext(connectionString);
 
 		#region QueryAsync()
-		public async ValueTask<IReadOnlyList<dynamic>> QueryAsync<TParamType>(
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public Task<List<RowStore>> QueryAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -47,12 +48,12 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
-			var query = (await InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber).ConfigureAwait(false))[0];
+			var query = InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 			return query;
 		}// QueryAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ValueTask<IReadOnlyList<dynamic>> QueryAsync(
+		public Task<List<RowStore>> QueryAsync(
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -66,7 +67,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryAsync() - parameterless
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ValueTask<IReadOnlyList<dynamic>> QueryAsync(
+		public Task<List<RowStore>> QueryAsync(
 			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -78,11 +79,57 @@ namespace SecurityDriven.TinyORM
 		{
 			return this.QueryAsync(sql: queryInfo.SQL, param: queryInfo.ParameterMap, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}// QueryAsync() - QueryInfo
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public Task<List<T>> QueryAsync<TParamType, T>(
+			string sql,
+			TParamType param,
+			Func<T> entityFactory,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = default,
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		) where TParamType : class where T : class, new()
+		{
+			return InternalQueryAsync<TParamType, T>(sql, param, entityFactory, commandTimeout, sqlTextOnly, cancellationToken, callerMemberName, callerFilePath, callerLineNumber);
+		}// QueryAsync<TParamType, T>()
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public Task<List<T>> QueryAsync<T>(
+			string sql,
+			Func<T> entityFactory,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = default,
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		) where T : class, new()
+		{
+			return InternalQueryAsync<string, T>(sql, null, entityFactory, commandTimeout, sqlTextOnly, cancellationToken, callerMemberName, callerFilePath, callerLineNumber);
+		}// QueryAsync<T>() parameterless
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public Task<List<T>> QueryAsync<T>(
+			QueryInfo queryInfo,
+			Func<T> entityFactory,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = default,
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		) where T : class, new()
+		{
+			return InternalQueryAsync(queryInfo.SQL, queryInfo.ParameterMap, entityFactory, commandTimeout, sqlTextOnly, cancellationToken, callerMemberName, callerFilePath, callerLineNumber);
+		}// QueryAsync<T>() - QueryInfo
 		#endregion
 
 		#region QueryMultipleAsync()
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync<TParamType>(
+		public Task<List<List<RowStore>>> QueryMultipleAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -93,11 +140,11 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
-			return this.InternalQueryAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+			return this.InternalQueryMultipleAsync(sql: sql, param: param, commandTimeout: commandTimeout, sqlTextOnly: sqlTextOnly, cancellationToken: cancellationToken, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}// QueryMultipleAsync<TParamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
+		public Task<List<List<RowStore>>> QueryMultipleAsync(
 			string sql,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -111,7 +158,7 @@ namespace SecurityDriven.TinyORM
 		}// QueryMultipleAsync() -- parameterless
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> QueryMultipleAsync(
+		public Task<List<List<RowStore>>> QueryMultipleAsync(
 			QueryInfo queryInfo,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
@@ -127,7 +174,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CommitQueryBatchAsync()
 
-		public async ValueTask<int> CommitQueryBatchAsync(
+		public async Task<int> CommitQueryBatchAsync(
 			QueryBatch queryBatch,
 			int batchSize = 0,
 			CancellationToken cancellationToken = default,
@@ -191,8 +238,8 @@ namespace SecurityDriven.TinyORM
 		}// CommitQueryBatchAsync()
 		#endregion
 
-		#region InternalQueryAsync()
-		async ValueTask<IReadOnlyList<IReadOnlyList<dynamic>>> InternalQueryAsync<TParamType>(
+		#region InternalQueryMultipleAsync()
+		async Task<List<List<RowStore>>> InternalQueryMultipleAsync<TParamType>(
 			string sql,
 			TParamType param,
 			int? commandTimeout = null,
@@ -209,73 +256,227 @@ namespace SecurityDriven.TinyORM
 				try
 				{
 					var conn = connWrapper.Connection;
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
-
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false);
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					var reader = await comm.ExecuteReaderAsync(CommandBehavior.Default, cancellationToken).ConfigureAwait(false);
 					try
 					{
-						var result = FetchResultSets(reader);
+						var result = FetchMultipleRowStoreResultSets(reader);
 						ts.Complete();
 						return result;
 					}//reader-try
 					finally
 					{
-						reader?.Close();
+						reader.Close();
 					}
 				}//connWrapper-try
 				finally
 				{
-					connWrapper?.Dispose();
+					connWrapper.Dispose();
 				}
 			}//ts
+		}// InternalQueryMultipleAsync<TParamType>()
+		#endregion
+
+		#region InternalQueryAsync()
+		async Task<List<RowStore>> InternalQueryAsync<TParamType>(
+			string sql,
+			TParamType param,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = default,
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		) where TParamType : class
+		{
+			var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value);
+			try
+			{
+				var connWrapper = this.GetWrappedConnection();
+				try
+				{
+					var conn = connWrapper.Connection;
+					var comm = new SqlCommand(null, conn);
+					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
+					try
+					{
+						var result = FetchSingleRowStoreResultSet(reader);
+						ts.Complete();
+						return result;
+					}//reader-try
+					finally
+					{
+						reader.Close();
+					}
+				}//connWrapper-try
+				finally
+				{
+					connWrapper.Dispose();
+				}
+			}
+			finally
+			{
+				ts.Dispose();
+			}
+		}// InternalQueryAsync<TParamType>()
+
+		// entity-returning
+		public async Task<List<T>> InternalQueryAsync<TParamType, T>(
+			string sql,
+			TParamType param,
+			Func<T> entityFactory,
+			int? commandTimeout = null,
+			bool sqlTextOnly = false,
+			CancellationToken cancellationToken = default,
+			[CallerMemberName] string callerMemberName = null,
+			[CallerFilePath] string callerFilePath = null,
+			[CallerLineNumber] int callerLineNumber = 0
+		) where TParamType : class where T : class, new()
+		{
+			var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value);
+			try
+			{
+				var connWrapper = this.GetWrappedConnection();
+				try
+				{
+					var conn = connWrapper.Connection;
+					var comm = new SqlCommand(null, conn);
+					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
+					try
+					{
+						var result = entityFactory == null ? FetchSingleEntityResultSet<T>(reader, New<T>.Instance) : FetchSingleEntityResultSet<T>(reader, entityFactory);
+						ts.Complete();
+						return result;
+					}//reader-try
+					finally
+					{
+						reader.Close();
+					}
+				}//connWrapper-try
+				finally
+				{
+					connWrapper.Dispose();
+				}
+			}
+			finally
+			{
+				ts.Dispose();
+			}
 		}// InternalQueryAsync<TParamType>()
 		#endregion
 
-		#region FetchResultSets()
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static List<List<RowStore>> FetchResultSets(SqlDataReader reader)
+		#region FetchSingleEntityResultSet()
+		internal static List<T> FetchSingleEntityResultSet<T>(SqlDataReader reader, Func<T> entityFactory) where T : class, new()
 		{
-			var resultSetList = new List<List<RowStore>>(1); // optimizing for a single result set
-			int resultSetId = 0, fieldCount = 0;
+			var rowStoreList = new List<T>(capacity: 8);
 
-			do
+			unchecked
 			{
-				var rowStoreList = new List<RowStore>(8);
-				ResultSetSchema resultSchema = null;
-
 				if (reader.Read())
 				{
-					fieldCount = reader.FieldCount;
+					var rowEntity = entityFactory();
+					int i = reader.FieldCount;
+
+					var rowValues = new object[i];
+					reader.GetValues(rowValues);
+
+					var setterArray = new Action<T, object>[i];
+					var setters = ReflectionHelper_Setter<T>.Setters;
+					for (i = 0; i < rowValues.Length; ++i)
+					{
+						var fieldName = reader.GetName(i);
+						if (setters.TryGetValue(fieldName, out var setter))
+						{
+							setter(rowEntity, rowValues[i]);
+							setterArray[i] = setter;
+						}
+					}
+
+					rowStoreList.Add(rowEntity);
+
+					while (reader.Read())
+					{
+						rowEntity = entityFactory();
+						reader.GetValues(rowValues);
+
+						for (i = 0; i < rowValues.Length; ++i)
+						{
+							setterArray[i]?.Invoke(rowEntity, rowValues[i]);
+						}//for
+
+						rowStoreList.Add(rowEntity);
+					}
+				}// if 1st row is read
+			}// unchecked
+
+			return rowStoreList;
+		}// FetchSingleEntityResultSet()
+		#endregion
+
+		#region FetchMultipleRowStoreResultSets()
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static List<List<RowStore>> FetchMultipleRowStoreResultSets(SqlDataReader reader)
+		{
+			var resultSetList = new List<List<RowStore>>(4);
+			unchecked
+			{
+				int resultSetId = 0;
+
+				do
+				{
+					var rowStoreList = FetchSingleRowStoreResultSet(reader, resultSetId++);
+					resultSetList.Add(rowStoreList);
+				} while (reader.NextResult());
+			}// unchecked
+			return resultSetList;
+		}// FetchMultipleRowStoreResultSets()
+		#endregion
+
+		#region FetchSingleRowStoreResultSet()
+		internal static List<RowStore> FetchSingleRowStoreResultSet(SqlDataReader reader, int resultSetId = 0)
+		{
+			var rowStoreList = new List<RowStore>(capacity: 8);
+			unchecked
+			{
+				if (reader.Read())
+				{
+					int fieldCount = reader.FieldCount;
+					int fieldCountPlusOne = fieldCount + 1;
 					var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
 					var fieldNames = new string[fieldCount];
-					for (int i = 0; i < fieldCount; ++i)
+					for (int i = 0; i < fieldNames.Length; ++i)
 					{
 						var fieldName = reader.GetName(i);
 						fieldMap.Add(fieldName, i);
 						fieldNames[i] = fieldName;
 					}
-					resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
+					var resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
 
-					var rowValues = new object[fieldCount];
+					var rowValues = new object[fieldCountPlusOne];
 					reader.GetValues(rowValues);
-					rowStoreList.Add(new RowStore(ref resultSchema, ref rowValues));
-				}
+					rowValues[fieldCount] = resultSchema;
+					rowStoreList.Add(new RowStore(rowValues));
 
-				while (reader.Read())
-				{
-					var rowValues = new object[fieldCount];
-					reader.GetValues(rowValues);
-					rowStoreList.Add(new RowStore(ref resultSchema, ref rowValues));
-				}
-
-				++resultSetId;
-				resultSetList.Add(rowStoreList);
-			} while (reader.NextResult());
-			return resultSetList;
-		}// FetchResultSets()
+					while (reader.Read())
+					{
+						rowValues = new object[fieldCountPlusOne];
+						reader.GetValues(rowValues);
+						rowValues[fieldCount] = resultSchema;
+						rowStoreList.Add(new RowStore(rowValues));
+					}
+				}// if 1st read
+			}// unchecked
+			return rowStoreList;
+		}// FetchSingleRowStoreResultSet()
 		#endregion
 
 		#region CreateTransactionScope()
@@ -347,10 +548,10 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region SequentialReaderAsync()
-		public async ValueTask<bool> SequentialReaderAsync<TParamType>(
+		public async Task<bool> SequentialReaderAsync<TParamType>(
 			string sql,
 			TParamType param,
-			Func<SqlDataReader, CancellationToken, ValueTask<bool>> actionAsync,
+			Func<SqlDataReader, CancellationToken, Task<bool>> actionAsync,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = default,
@@ -365,11 +566,10 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var conn = connWrapper.Connection;
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
-
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
+					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 					using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 					{
 						result = await actionAsync(reader, cancellationToken).ConfigureAwait(false);
@@ -380,9 +580,9 @@ namespace SecurityDriven.TinyORM
 			return result;
 		}// SequentialReaderAsync<TParamType>()
 
-		public ValueTask<bool> SequentialReaderAsync(
+		public Task<bool> SequentialReaderAsync(
 			string sql,
-			Func<SqlDataReader, CancellationToken, ValueTask<bool>> actionAsync,
+			Func<SqlDataReader, CancellationToken, Task<bool>> actionAsync,
 			int? commandTimeout = null,
 			bool sqlTextOnly = false,
 			CancellationToken cancellationToken = default,

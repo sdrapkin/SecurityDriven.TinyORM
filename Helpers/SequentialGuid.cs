@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace SecurityDriven.TinyORM.Helpers
 {
 	public static class SequentialGuid
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static Guid NewSequentialGuid() => GuidStruct.NewSequentialGuid();
 
 		#region LongStruct
@@ -83,6 +85,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			[FieldOffset(15)]
 			public byte BF;
 
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static Guid NewSequentialGuid()
 			{
 				var guidStruct = new GuidStruct { Value = Guid.NewGuid() };
@@ -108,17 +111,20 @@ namespace SecurityDriven.TinyORM.Helpers
 			[DllImport("rpcrt4.dll", SetLastError = true), System.Security.SuppressUnmanagedCodeSecurity]
 			static extern int UuidCreateSequential(out Guid guid);
 
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			static Guid GetSequentialUuid()
 			{
 				const int RPC_S_OK = 0;
 				if (UuidCreateSequential(out var g) == RPC_S_OK) return g;
-				throw new Exception("UuidCreateSequential did not return RPC_S_OK.");
+				return ThrowException();
+
+				Guid ThrowException() => throw new Exception("UuidCreateSequential did not return RPC_S_OK.");
 			}//GetSequentialUuid()
 		}// struct GuidStruct
 		#endregion
 
 		// https://tools.ietf.org/html/rfc4122 UUID zero-tick starts on 1582-October-15 (Gregorian reform to the Christian calendar)
-		static readonly long UuidStartTicks = new DateTime(1582, 10, 15, 0, 0, 1, 1, DateTimeKind.Utc).Ticks;
+		static long UuidStartTicks = new DateTime(1582, 10, 15, 0, 0, 1, 1, DateTimeKind.Utc).Ticks;
 		public static DateTime ExtractDateTimeUtc(this Guid g)
 		{
 			var guidStruct = new GuidStruct { Value = g };

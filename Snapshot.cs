@@ -5,7 +5,7 @@ namespace SecurityDriven.TinyORM
 {
 	using Utils;
 
-	public class Snapshot
+	public sealed class Snapshot
 	{
 		Snapshot(Dictionary<string, object> propertyMap)
 		{

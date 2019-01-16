@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace SecurityDriven.TinyORM
 {
-	internal class ConnectionWrapper : IDisposable
+	internal sealed class ConnectionWrapper : IDisposable
 	{
 		public SqlConnection Connection;
 		int refCount = 1;

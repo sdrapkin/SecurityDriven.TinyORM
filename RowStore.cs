@@ -29,9 +29,11 @@ namespace SecurityDriven.TinyORM
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get
 			{
-				if (i == (this.RowValues.Length - 1)) throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
+				if (i == (this.RowValues.Length - 1)) ThrowIndexOutOfRangeException();
 				var result = this.RowValues[i];
 				return result == DBNull.Value ? null : result;
+
+				void ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 			}
 		}
 
@@ -47,13 +49,16 @@ namespace SecurityDriven.TinyORM
 				var result = this.RowValues[index];
 				return result == DBNull.Value ? null : result;
 			}//get
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			set
 			{
 				if (!TryGetIndex(key, out var index))
 				{
-					throw new ArgumentException("\"" + key + "\" column is not found.");
+					ThrowArgumentException();
 				}
 				this.RowValues[index] = value ?? DBNull.Value;
+
+				void ThrowArgumentException() => throw new ArgumentException("\"" + key + "\" column is not found.");
 			}//set
 		}
 
@@ -111,6 +116,7 @@ namespace SecurityDriven.TinyORM
 		/// <summary>
 		/// Converts RowStore into an instance of T on a best-effort-match basis. Does not throw on any mismatches.
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public T ToObject<T>(Func<T> objectFactory) where T : class
 		{
 			var setters = ReflectionHelper_Setter<T>.Setters;
@@ -173,10 +179,10 @@ namespace SecurityDriven.TinyORM
 	#endregion
 
 	#region FieldNotFound
-	public class FieldNotFound
+	public sealed class FieldNotFound
 	{
 		internal FieldNotFound() { }
-		public override string ToString() => throw new NotImplementedException(@"Field not found. Use ""obj is FieldNotFound"" instead of .ToString().");
+		public sealed override string ToString() => throw new NotImplementedException(@"Field not found. Use ""obj is FieldNotFound"" instead of .ToString().");
 	}//class FieldNotFound
 	#endregion
 }//ns

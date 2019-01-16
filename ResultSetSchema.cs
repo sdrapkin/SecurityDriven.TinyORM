@@ -3,9 +3,9 @@
 namespace SecurityDriven.TinyORM
 {
 	#region ResultSetSchema
-	public class ResultSetSchema
+	public sealed class ResultSetSchema
 	{
-		public readonly int ResultSetId;
+		public int ResultSetId;
 		public readonly Dictionary<string, int> FieldMap;
 		public readonly string[] FieldNames;
 

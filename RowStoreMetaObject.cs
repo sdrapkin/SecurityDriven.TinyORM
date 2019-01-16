@@ -6,7 +6,7 @@ using System.Reflection;
 namespace SecurityDriven.TinyORM
 {
 	// based on Dapper's approach
-	class RowStoreMetaObject : DynamicMetaObject
+	sealed class RowStoreMetaObject : DynamicMetaObject
 	{
 		static readonly MethodInfo s_getValueMethod;
 		static readonly MethodInfo s_setValueMethod;
@@ -22,7 +22,7 @@ namespace SecurityDriven.TinyORM
 		public RowStoreMetaObject(Expression expression, BindingRestrictions restrictions) : base(expression, restrictions) { }
 		public RowStoreMetaObject(Expression expression, BindingRestrictions restrictions, object value) : base(expression, restrictions, value) { }
 
-		public override DynamicMetaObject BindGetMember(GetMemberBinder binder)
+		public sealed override DynamicMetaObject BindGetMember(GetMemberBinder binder)
 		{
 			var parameters = new Expression[] { Expression.Constant(binder.Name) };
 
@@ -38,7 +38,7 @@ namespace SecurityDriven.TinyORM
 		}// BindGetMember()
 
 		// Needed for Visual basic dynamic support
-		public override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
+		public sealed override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
 		{
 			var parameters = new Expression[] { Expression.Constant(binder.Name) };
 
@@ -53,7 +53,7 @@ namespace SecurityDriven.TinyORM
 			return callMethod;
 		}// BindInvokeMember()
 
-		public override DynamicMetaObject BindSetMember(SetMemberBinder binder, DynamicMetaObject value)
+		public sealed override DynamicMetaObject BindSetMember(SetMemberBinder binder, DynamicMetaObject value)
 		{
 			var objectType = typeof(object);
 			var parameters = new Expression[] { Expression.Constant(binder.Name), Expression.Convert(value.Expression, objectType) };

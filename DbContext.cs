@@ -13,7 +13,7 @@ namespace SecurityDriven.TinyORM
 	using Extensions;
 	using Utils;
 
-	public class DbContext
+	public sealed class DbContext
 	{
 		internal readonly string connectionString;
 

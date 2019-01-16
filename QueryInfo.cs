@@ -5,7 +5,7 @@ namespace SecurityDriven.TinyORM
 {
 	using Utils;
 
-	public class QueryInfo
+	public sealed class QueryInfo
 	{
 		public string SQL { get; set; }
 		public Dictionary<string, (object, Type)> ParameterMap { get; set; }

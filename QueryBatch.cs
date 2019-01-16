@@ -7,7 +7,7 @@ namespace SecurityDriven.TinyORM
 	using Utils;
 	using NameValueTypeTuple = ValueTuple<string, Dictionary<string, (object, Type)>>;
 
-	public class QueryBatch
+	public sealed class QueryBatch
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static QueryBatch Create() => new QueryBatch();

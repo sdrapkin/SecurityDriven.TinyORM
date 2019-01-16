@@ -8,7 +8,7 @@ namespace SecurityDriven.TinyORM
 	/// <summary>
 	/// CallerIdentity class.
 	/// </summary>
-	public class CallerIdentity
+	sealed public class CallerIdentity
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CallerIdentity"/> class.

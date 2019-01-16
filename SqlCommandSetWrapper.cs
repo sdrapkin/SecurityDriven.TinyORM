@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace SecurityDriven.TinyORM
 {
-	internal class SqlCommandSetWrapper : IDisposable
+	internal sealed class SqlCommandSetWrapper : IDisposable
 	{
 		static readonly Type commandSetType;
 		static readonly Func<object> commandSetCtor;

@@ -109,7 +109,7 @@ namespace SecurityDriven.TinyORM
 
 		static Func<Transaction, ConnectionWrapperContainer> _getNewConnectionCache = transaction => new ConnectionWrapperContainer();
 
-		internal class ConnectionWrapperContainer
+		internal sealed class ConnectionWrapperContainer
 		{
 			public string ConnectionString;
 			public ConnectionWrapper ConnectionWrapper;

@@ -15,16 +15,18 @@ namespace SecurityDriven.TinyORM.Extensions
 		public static T[] ToObjectArray<T>(this List<RowStore> listOfRowStore) where T : class, new() => ToObjectArray<T>(listOfRowStore, New<T>.Instance);
 
 		/// <summary>Converts a List of RowStore-objects into an array of T-objects on a best-effort-match basis. Parallelized. Does not throw on any mismatches.</summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static T[] ToObjectArray<T>(this List<RowStore> listOfRowStore, Func<T> objectFactory) where T : class
 		{
 			unchecked
 			{
-				int newArrayLength = listOfRowStore.Count;
+				var listOfRowStoreAlias = listOfRowStore;
+				int newArrayLength = listOfRowStoreAlias.Count;
 				T[] newArray = new T[newArrayLength];
 				if (newArrayLength == 0) return newArray;
 
 				var objectFactoryAlias = objectFactory;
-				RowStore[] arrayOfRowStore = listOfRowStore.GetList_itemsArray();
+				RowStore[] arrayOfRowStore = listOfRowStoreAlias.GetList_itemsArray();
 				RowStore firstElement = arrayOfRowStore[0];
 
 				var settersArray = new Action<T, object>[firstElement.RowValues.Length];
@@ -42,17 +44,10 @@ namespace SecurityDriven.TinyORM.Extensions
 					T objT = objectFactoryAlias();
 					newArray[i] = objT;
 					object[] rowValues = arrayOfRowStore[i].RowValues;
-					//DBNull dbNullValue = DBNull.Value;
 
 					for (i = 0; i < rowValues.Length; ++i)
 					{
-						var setter = settersArray[i];
-						if (setter == null) continue;
-
-						object val = rowValues[i];
-						//if (val != dbNullValue)
-						setter(objT, val);
-						//else setter(objT, null);
+						settersArray[i]?.Invoke(objT, rowValues[i]);
 					}//for
 				});
 				return newArray;
@@ -60,21 +55,22 @@ namespace SecurityDriven.TinyORM.Extensions
 		}// ToObjectArray<T>()
 
 		/// <summary>Converts a List of RowStore into an array of T-objects using a provided object mapper. Parallelized.</summary>
-		public static T[] ToMappedObjectArray<T>(this List<RowStore> listOfRowStore, Func<RowStore, T> objectMapper)
+		public static T[] ToMappedObjectArray<T>(this List<RowStore> listOfRowStore, Func<RowStore, T> objectMapper) where T : class
 		{
-			int newArrayLength = listOfRowStore.Count;
+			var listOfRowStoreAlias = listOfRowStore;
+			int newArrayLength = listOfRowStoreAlias.Count;
 			T[] newArray = new T[newArrayLength];
 			if (newArrayLength == 0) return newArray;
 			var objectMapperAlias = objectMapper;
 
-			RowStore[] arrayOfRowStore = listOfRowStore.GetList_itemsArray();
+			RowStore[] arrayOfRowStore = listOfRowStoreAlias.GetList_itemsArray();
 
 			Parallel.For(0, newArrayLength, i => newArray[i] = objectMapperAlias(arrayOfRowStore[i]));
 			return newArray;
 		}//ToMappedObjectArray<T>
 
 		/// <summary>Converts any Array or List of T into a single-column named TVP.</summary>
-		public static DataTable AsTVP<T>(this IReadOnlyList<T> list, string tvpName)
+		public static DataTable AsTVP<T>(this IReadOnlyList<T> list, string tvpName) where T : class
 		{
 			var dataTable = new DataTable(tvpName);
 			dataTable.Columns.Add();

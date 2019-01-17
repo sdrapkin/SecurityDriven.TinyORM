@@ -208,7 +208,7 @@ namespace SecurityDriven.TinyORM
 
 					foreach (var batch in batches)
 					{
-						if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+						if (conn.State != ConnectionState.Open) conn.Open();
 
 						using (var sqlCommandSetWrapper = new SqlCommandSetWrapper())
 						{
@@ -259,7 +259,7 @@ namespace SecurityDriven.TinyORM
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					if (conn.State != ConnectionState.Open) conn.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.Default, cancellationToken).ConfigureAwait(false);
 					try
 					{
@@ -302,7 +302,7 @@ namespace SecurityDriven.TinyORM
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					if (conn.State != ConnectionState.Open) conn.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
 					try
 					{
@@ -349,7 +349,7 @@ namespace SecurityDriven.TinyORM
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					if (conn.State != ConnectionState.Open) conn.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
 					try
 					{
@@ -572,7 +572,7 @@ namespace SecurityDriven.TinyORM
 					var comm = new SqlCommand(null, conn);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+					if (conn.State != ConnectionState.Open) conn.Open();
 					using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 					{
 						result = await actionAsync(reader, cancellationToken).ConfigureAwait(false);

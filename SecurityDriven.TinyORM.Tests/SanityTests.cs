@@ -86,8 +86,8 @@ namespace SecurityDriven.TinyORM.Tests
 			}
 
 			{
-				// static projection of a list of rows:
-				var ids = await db.QueryAsync("select [Answer] = object_id from sys.objects where is_ms_shipped = 1;");
+				// static projection of a list of rows to RowStore:
+				List<RowStore> ids = await db.QueryAsync("select [Answer] = object_id from sys.objects where is_ms_shipped = 1;");
 				var pocoArray = ids.ToObjectArray<POCO>();
 				var pocoArray_via_factory = ids.ToObjectArray(() => new POCO());
 				for (int i = 0; i < pocoArray.Length; ++i)
@@ -95,6 +95,14 @@ namespace SecurityDriven.TinyORM.Tests
 					Assert.IsTrue((int)ids[i]["Answer"] > 0);
 					Assert.IsTrue((int)pocoArray[i].Answer > 0);
 					Assert.IsTrue((int)pocoArray_via_factory[i].Answer > 0);
+				}
+			}
+			{
+				// static projection of a list of rows to POCO
+				List<POCO> pocoList = await db.QueryAsync("select [Answer] = object_id from sys.objects where is_ms_shipped = 1;", default(Func<POCO>));
+				foreach (var poco in pocoList)
+				{
+					Assert.IsTrue(poco.Answer > 0);
 				}
 			}
 			int low = 10, high = 40;

@@ -30,7 +30,7 @@ namespace SecurityDriven.TinyORM
 			{
 				ref var _containerConnectionString = ref connectionWrapperContainer.ConnectionString;
 				ref var _containerConnectionWrapper = ref connectionWrapperContainer.ConnectionWrapper;
-				while (true)
+				do
 				{
 					if (_containerConnectionString == null)
 					{
@@ -70,7 +70,7 @@ namespace SecurityDriven.TinyORM
 						_containerConnectionWrapperDictionary.Add(_connectionString, wrappedConnection);
 					}
 					break;
-				}// while (true)
+				} while (false);
 			}// release lock
 
 			wrappedConnection.IncrementUseCount();

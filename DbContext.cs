@@ -530,11 +530,14 @@ namespace SecurityDriven.TinyORM
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get { return this.callerIdentityDelegate; }
 
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			set
 			{
 				var newCallerIdentityDelegate = value;
-				if (newCallerIdentityDelegate == null) throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
+				if (newCallerIdentityDelegate == null) ThrowArgumentNullException();
 				Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
+
+				void ThrowArgumentNullException() => throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
 			}
 		}// CallerIdentityDelegate			
 		#endregion

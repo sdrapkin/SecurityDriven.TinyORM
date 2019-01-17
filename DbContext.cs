@@ -174,7 +174,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CommitQueryBatchAsync()
 
-		public async Task<int> CommitQueryBatchAsync(
+		public Task<int> CommitQueryBatchAsync(
 			QueryBatch queryBatch,
 			int batchSize = 0,
 			CancellationToken cancellationToken = default,
@@ -234,7 +234,7 @@ namespace SecurityDriven.TinyORM
 				}//connWrapper
 				ts.Complete();
 			}//ts
-			return cumulativeResult;
+			return Task.FromResult(cumulativeResult);
 		}// CommitQueryBatchAsync()
 		#endregion
 

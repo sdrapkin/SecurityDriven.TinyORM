@@ -108,6 +108,7 @@ namespace SecurityDriven.TinyORM.Helpers
 					k: uuidStruct.B2);
 			}// NewSequentialGuid()
 
+			[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass")]
 			[DllImport("rpcrt4.dll", SetLastError = true), System.Security.SuppressUnmanagedCodeSecurity]
 			static extern int UuidCreateSequential(out Guid guid);
 

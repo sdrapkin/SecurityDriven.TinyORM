@@ -174,6 +174,7 @@ namespace SecurityDriven.TinyORM
 
 		#region CommitQueryBatchAsync()
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities")]
 		public Task<int> CommitQueryBatchAsync(
 			QueryBatch queryBatch,
 			int batchSize = 0,

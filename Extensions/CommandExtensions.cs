@@ -80,6 +80,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		static readonly Type s_DateTimeType = typeof(DateTime);
 		#endregion
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities")]
 		static void ProcessParameter(ref SqlCommand command, ref SqlParameterCollection sqlParameterCollection, ref string name, ref object value, ref Type type)
 		{
 			if (value is IEnumerable propValueEnumerable && !(value is string s) && !(value is byte[] b))
@@ -197,6 +198,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			}
 		}// SetupMetaParameters()
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities")]
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void Setup<TParamType>(
 			this SqlCommand command,

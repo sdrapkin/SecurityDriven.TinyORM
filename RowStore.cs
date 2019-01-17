@@ -182,6 +182,7 @@ namespace SecurityDriven.TinyORM
 	public sealed class FieldNotFound
 	{
 		internal FieldNotFound() { }
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
 		public sealed override string ToString() => throw new NotImplementedException(@"Field not found. Use ""obj is FieldNotFound"" instead of .ToString().");
 	}//class FieldNotFound
 	#endregion

@@ -937,5 +937,27 @@ namespace SecurityDriven.TinyORM.Tests
 					Assert.IsTrue((short)tasks[i - 1].Result.First()["transaction_isolation_level"] == (i % 2 == 0 ? 2 : 4)); // 2=ReadCommitted; 4=Serializable
 			}// ParallelQueries(s)
 		}// TestTransactionScopes()
+
+		[TestMethod]
+		public async Task TestTVP()
+		{
+			try
+			{
+				await db.QueryAsync("BEGIN TRY CREATE TYPE __GuidTable AS TABLE (Id UNIQUEIDENTIFIER PRIMARY KEY CLUSTERED);END TRY BEGIN CATCH END CATCH");
+
+				const int COUNT = 3000;
+				var data = Enumerable.Range(0, COUNT).Select(i => Guid.NewGuid()).ToArray();
+				var tvp = data.AsTVP("__GuidTable");
+				var result = await db.QueryAsync("select * from @tvp", new { tvp });
+				Guid[] guids = result.Cast<dynamic>().Select(row => (Guid)row.Id).ToArray();
+
+				Assert.IsTrue(guids.Length == COUNT);
+			}
+			finally
+			{
+				await db.QueryAsync("DROP TYPE __GuidTable;");
+
+			}
+		}
 	}//class
 }//ns

@@ -70,7 +70,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		}//ToMappedObjectArray<T>
 
 		/// <summary>Converts any Array or List of T into a single-column named TVP.</summary>
-		public static DataTable AsTVP<T>(this IReadOnlyList<T> list, string tvpName) where T : class
+		public static DataTable AsTVP<T>(this IReadOnlyList<T> list, string tvpName)
 		{
 			var dataTable = new DataTable(tvpName);
 			dataTable.Columns.Add();

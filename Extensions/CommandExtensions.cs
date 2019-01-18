@@ -164,7 +164,7 @@ namespace SecurityDriven.TinyORM.Extensions
 
 		internal const string CMD_HEADER = CMD_HEADER_START + CMD_HEADER_REST;
 		internal const string CMD_HEADER_QUERYBATCH = CMD_HEADER_START_QUERYBATCH + CMD_HEADER_REST;
-		internal const string CMD_FOOTER = ";\nset context_info 0x";
+		internal const string CMD_FOOTER = ";\nset context_info 0";
 
 		internal const int MAX_UNICODE_STRING_LENGTH = 4000;
 		internal const int MAX_ANSI_STRING_LENGTH = MAX_UNICODE_STRING_LENGTH * 2;

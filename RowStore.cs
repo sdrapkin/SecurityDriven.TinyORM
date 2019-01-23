@@ -79,10 +79,19 @@ namespace SecurityDriven.TinyORM
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public override string ToString()
-		{
-			return string.Join(Environment.NewLine, this);
-		}
+		public override string ToString() => string.Join(Environment.NewLine, this);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public override int GetHashCode() => this.RowValues.GetHashCode();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public override bool Equals(object obj) => this == (RowStore)obj;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool operator ==(RowStore rs1, RowStore rs2) => rs1.RowValues == rs2.RowValues;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool operator !=(RowStore rs1, RowStore rs2) => rs1.RowValues != rs2.RowValues;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool ContainsKey(string key) => this.Schema.FieldMap.ContainsKey(key);
@@ -102,10 +111,8 @@ namespace SecurityDriven.TinyORM
 			return true;
 		}
 
-		public DynamicMetaObject GetMetaObject(Expression parameter)
-		{
-			return new RowStoreMetaObject(parameter, BindingRestrictions.Empty, this);
-		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public DynamicMetaObject GetMetaObject(Expression parameter) => new RowStoreMetaObject(parameter, BindingRestrictions.Empty, this);
 
 		/// <summary>
 		/// Converts RowStore into an instance of T on a best-effort-match basis. Does not throw on any mismatches.

@@ -251,16 +251,16 @@ namespace SecurityDriven.TinyORM
 			[CallerLineNumber] int callerLineNumber = 0
 		) where TParamType : class
 		{
-			using (var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value))
+			var ts = (commandTimeout == null) ? DbContext.CreateTransactionScope() : DbContext.CreateTransactionScope(commandTimeout.Value);
+			try
 			{
 				var connWrapper = this.GetWrappedConnection();
 				try
 				{
-					var conn = connWrapper.Connection;
-					var comm = new SqlCommand(null, conn);
+					var comm = new SqlCommand(null, connWrapper.Connection);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) conn.Open();
+					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.Default, cancellationToken).ConfigureAwait(false);
 					try
 					{
@@ -277,7 +277,11 @@ namespace SecurityDriven.TinyORM
 				{
 					connWrapper.Dispose();
 				}
-			}//ts
+			}
+			finally
+			{
+				ts.Dispose();
+			}
 		}// InternalQueryMultipleAsync<TParamType>()
 		#endregion
 
@@ -299,11 +303,10 @@ namespace SecurityDriven.TinyORM
 				var connWrapper = this.GetWrappedConnection();
 				try
 				{
-					var conn = connWrapper.Connection;
-					var comm = new SqlCommand(null, conn);
+					var comm = new SqlCommand(null, connWrapper.Connection);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) conn.Open();
+					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
 					try
 					{
@@ -346,11 +349,10 @@ namespace SecurityDriven.TinyORM
 				var connWrapper = this.GetWrappedConnection();
 				try
 				{
-					var conn = connWrapper.Connection;
-					var comm = new SqlCommand(null, conn);
+					var comm = new SqlCommand(null, connWrapper.Connection);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) conn.Open();
+					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
 					try
 					{
@@ -569,11 +571,10 @@ namespace SecurityDriven.TinyORM
 			{
 				using (var connWrapper = this.GetWrappedConnection())
 				{
-					var conn = connWrapper.Connection;
-					var comm = new SqlCommand(null, conn);
+					var comm = new SqlCommand(null, connWrapper.Connection);
 					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
-					if (conn.State != ConnectionState.Open) conn.Open();
+					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
 					{
 						result = await actionAsync(reader, cancellationToken).ConfigureAwait(false);

@@ -27,7 +27,7 @@ namespace SecurityDriven.TinyORM.Extensions
 
 				var objectFactoryAlias = objectFactory;
 				RowStore[] arrayOfRowStore = listOfRowStoreAlias.GetList_itemsArray();
-				RowStore firstElement = arrayOfRowStore[0];
+				ref RowStore firstElement = ref arrayOfRowStore[0];
 
 				var settersArray = new Action<T, object>[firstElement.RowValues.Length];
 

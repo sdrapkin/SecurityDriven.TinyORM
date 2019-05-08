@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SecurityDriven.TinyORM")]
-[assembly: AssemblyCopyright("Copyright © 2018 Stan Drapkin")]
+[assembly: AssemblyCopyright("Copyright © 2019 Stan Drapkin")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

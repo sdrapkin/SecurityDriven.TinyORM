@@ -44,7 +44,7 @@ namespace SecurityDriven.TinyORM.Helpers
 					sbParams.Append(',');
 				}
 				sb.Append('[').Append(currentKey).Append(']');
-				paramName = "@@" + currentKey;
+				paramName = "@#" + currentKey;
 				sbParams.Append(paramName);
 				dictNew.Add(paramName, kvp.Value);
 			}//foreach
@@ -129,7 +129,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				{
 					sb.Append(',');
 				}
-				paramName = "@@" + currentKey;
+				paramName = "@#" + currentKey;
 				sb.Append('[').Append(currentKey).Append("]=").Append(paramName);
 				dictNew.Add(paramName, kvp.Value);
 			}//foreach
@@ -191,7 +191,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				}
 
 				sbSql.Append(currentKeyBracketed);
-				paramName = "@@" + currentKey;
+				paramName = "@#" + currentKey;
 				sbParams.Append(paramName);
 				dictParams.Add(paramName, kvp.Value);
 

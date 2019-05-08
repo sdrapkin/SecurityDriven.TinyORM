@@ -50,8 +50,8 @@ namespace SecurityDriven.TinyORM.Utils
 			var parameterExpressionArray = new[] { pInstance };
 
 			var expressionArrayOf2 = new Expression[2];
-			ref var expressionArrayOf2_0 = ref expressionArrayOf2[0];
 			ref var expressionArrayOf2_1 = ref expressionArrayOf2[1];
+			ref var expressionArrayOf2_0 = ref expressionArrayOf2[0];
 
 			ref var _ValueTupleCtor = ref s_ValueTupleCtor;
 			ref var _ObjectType = ref ObjectType;

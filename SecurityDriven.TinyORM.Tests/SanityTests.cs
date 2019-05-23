@@ -958,6 +958,36 @@ namespace SecurityDriven.TinyORM.Tests
 				await db.QueryAsync("DROP TYPE __GuidTable;");
 
 			}
+		}// TestTVP()
+
+		[TestMethod]
+		public async Task Test_Version_PropName()
+		{
+			var p = new
+			{
+				Id = new Guid("cf9fad7a-9775-28b9-7693-11e6ea3b1484"),
+				Name = "John",
+				BirthDate = new DateTime(1975, 03, 17),
+				Version = Environment.TickCount
+			};
+
+			using (var ts = DbContext.CreateTransactionScope())
+			{
+				await db.QueryAsync("create table #Person (Id uniqueidentifier primary key, Name nvarchar(50), BirthDate datetime2, Version timestamp);", sqlTextOnly: true);
+				var query = Helpers.QB.Upsert(p, tableName: "#Person",
+				excludedInsertProperties: n => (n == "Version"),
+				includedUpdateProperties: n => (n != "Version" && n != "Id")
+				);
+
+				var batch = QueryBatch.Create();
+				batch.AddQuery(query);
+
+				await db.CommitQueryBatchAsync(batch);
+
+				dynamic row = (await db.QueryAsync("select * from #Person;")).Single();
+				Assert.IsTrue(row.Id == p.Id && row.Name == p.Name && row.BirthDate == p.BirthDate);
+				await db.QueryAsync("drop table #Person;");
+			}
 		}
-	}//class
+	}//class SanityTests
 }//ns

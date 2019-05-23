@@ -7,8 +7,9 @@ namespace SecurityDriven.TinyORM
 {
 	internal sealed class SqlCommandSetWrapper : IDisposable
 	{
-		static readonly Type commandSetType;
-		static readonly Func<object> commandSetCtor;
+		static readonly Type commandSetType = typeof(SqlCommand).Assembly.GetType("System.Data.SqlClient.SqlCommandSet")
+			?? throw new Exception($"{nameof(SqlCommandSetWrapper)}: Could not find[System.Data.SqlClient.SqlCommandSet].");
+		static readonly Func<object> commandSetCtor = Expression.Lambda<Func<object>>(Expression.New(commandSetType)).Compile();
 		readonly object commandSetInstance;
 		readonly Action<SqlCommand> appendDelegate;
 		readonly Action disposeDelegate;
@@ -18,13 +19,6 @@ namespace SecurityDriven.TinyORM
 		readonly Action<int> commandTimeoutSetDelegate;
 
 		int commandCount;
-
-		static SqlCommandSetWrapper()
-		{
-			commandSetType = typeof(SqlCommand).Assembly.GetType("System.Data.SqlClient.SqlCommandSet");
-			Debug.Assert(commandSetType != null, @"Could not find [System.Data.SqlClient.SqlCommandSet].");
-			commandSetCtor = Expression.Lambda<Func<object>>(Expression.New(commandSetType)).Compile();
-		}//static ctor
 
 		public SqlCommandSetWrapper()
 		{

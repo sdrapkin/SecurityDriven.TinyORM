@@ -8,16 +8,9 @@ namespace SecurityDriven.TinyORM
 	// based on Dapper's approach
 	sealed class RowStoreMetaObject : DynamicMetaObject
 	{
-		static readonly MethodInfo s_getValueMethod;
-		static readonly MethodInfo s_setValueMethod;
-
-		static RowStoreMetaObject()
-		{
-			var rowStoreType = typeof(RowStore);
-			var rowStoreIndexerPropertyInfo = rowStoreType.GetProperty("Item", new Type[] { typeof(string) });
-			s_getValueMethod = rowStoreIndexerPropertyInfo.GetGetMethod(nonPublic: false);
-			s_setValueMethod = rowStoreIndexerPropertyInfo.GetSetMethod(nonPublic: false);
-		}
+		static readonly PropertyInfo s_rowStoreIndexerPropertyInfo = typeof(RowStore).GetProperty("Item", new Type[] { typeof(string) });
+		static readonly MethodInfo s_getValueMethod = s_rowStoreIndexerPropertyInfo.GetGetMethod(nonPublic: false);
+		static readonly MethodInfo s_setValueMethod = s_rowStoreIndexerPropertyInfo.GetSetMethod(nonPublic: false);
 
 		public RowStoreMetaObject(Expression expression, BindingRestrictions restrictions) : base(expression, restrictions) { }
 		public RowStoreMetaObject(Expression expression, BindingRestrictions restrictions, object value) : base(expression, restrictions, value) { }

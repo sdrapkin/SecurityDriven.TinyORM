@@ -24,7 +24,7 @@ namespace SecurityDriven.TinyORM
 			var queryInfo = new QueryInfo() { SQL = sql };
 			if (param == null)
 			{
-				queryInfo.ParameterMap = new Dictionary<string, (object, Type)>(0);
+				queryInfo.ParameterMap = new Dictionary<string, (object, Type)>(0, Util.FastStringComparer.Instance);
 				return queryInfo;
 			}
 

@@ -22,7 +22,7 @@ namespace SecurityDriven.TinyORM
 		{
 			Dictionary<string, (object, Type)> paramDictionary;
 			if (param == null)
-				paramDictionary = new Dictionary<string, (object, Type)>(0);
+				paramDictionary = new Dictionary<string, (object, Type)>(0, Util.FastStringComparer.Instance);
 			else if (param is Dictionary<string, (object, Type)> _paramDictionary)
 				paramDictionary = _paramDictionary;
 			else

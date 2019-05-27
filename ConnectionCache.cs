@@ -53,7 +53,7 @@ namespace SecurityDriven.TinyORM
 						{
 							// Add a 2nd ConnectionWrapper
 							wrappedConnection = db.GetNewWrappedConnection();
-							_containerConnectionWrapperDictionary = new Dictionary<string, ConnectionWrapper>(capacity: 2)
+							_containerConnectionWrapperDictionary = new Dictionary<string, ConnectionWrapper>(capacity: 2, comparer: Util.FastStringComparer.Instance)
 							{
 								{ _containerConnectionString, _containerConnectionWrapper },
 								{ _connectionString, wrappedConnection }

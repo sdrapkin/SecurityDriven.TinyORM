@@ -107,7 +107,7 @@ namespace SecurityDriven.TinyORM
 			}// while (true)
 		}// OnTransactionCompleted()
 
-		static Func<Transaction, ConnectionWrapperContainer> _getNewConnectionCache = transaction => new ConnectionWrapperContainer();
+		static readonly Func<Transaction, ConnectionWrapperContainer> _getNewConnectionCache = transaction => new ConnectionWrapperContainer();
 
 		internal sealed class ConnectionWrapperContainer
 		{

@@ -9,7 +9,7 @@ namespace SecurityDriven.TinyORM
 	using Utils;
 
 	#region struct RowStore
-	public readonly struct RowStore : IReadOnlyDictionary<string, object>, IDynamicMetaObjectProvider
+	public readonly struct RowStore : IReadOnlyDictionary<string, object>, IDynamicMetaObjectProvider, IEquatable<RowStore>
 	{
 		static readonly FieldNotFound notFound = new FieldNotFound();
 		public readonly object[] RowValues;
@@ -88,10 +88,13 @@ namespace SecurityDriven.TinyORM
 		public override bool Equals(object obj) => this == (RowStore)obj;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool operator ==(RowStore rs1, RowStore rs2) => rs1.RowValues == rs2.RowValues;
+		public bool Equals(RowStore other) => this.RowValues == other.RowValues;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool operator !=(RowStore rs1, RowStore rs2) => rs1.RowValues != rs2.RowValues;
+		public static bool operator ==(in RowStore rs1, in RowStore rs2) => rs1.RowValues == rs2.RowValues;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool operator !=(in RowStore rs1, in RowStore rs2) => rs1.RowValues != rs2.RowValues;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool ContainsKey(string key) => this.Schema.FieldMap.ContainsKey(key);

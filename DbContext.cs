@@ -458,15 +458,15 @@ namespace SecurityDriven.TinyORM
 					var resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
 
 					var rowValues = new object[fieldCountPlusOne];
-					reader.GetValues(rowValues);
 					rowValues[fieldCount] = resultSchema;
+					reader.GetValues(rowValues);
 					rowStoreList.Add(new RowStore(rowValues));
 
 					while (reader.Read())
 					{
 						rowValues = new object[fieldCountPlusOne];
-						reader.GetValues(rowValues);
 						rowValues[fieldCount] = resultSchema;
+						reader.GetValues(rowValues);
 						rowStoreList.Add(new RowStore(rowValues));
 					}
 				}// if 1st read

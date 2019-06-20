@@ -13,6 +13,7 @@ namespace SecurityDriven.TinyORM.Tests
 {
 	using SecurityDriven.TinyORM;
 	using SecurityDriven.TinyORM.Extensions;
+	using SecurityDriven.TinyORM.Helpers;
 
 	[TestClass]
 	public class SanityTests
@@ -988,6 +989,138 @@ namespace SecurityDriven.TinyORM.Tests
 				Assert.IsTrue(row.Id == p.Id && row.Name == p.Name && row.BirthDate == p.BirthDate);
 				await db.QueryAsync("drop table #Person;");
 			}
-		}
+		}// Test_Version_PropName()
+
+		[TestMethod]
+		public void Test_QB_Insert_Update()
+		{
+			var person = new
+			{
+				Id = new Guid("cf9fad7a-9775-28b9-7693-11e6ea3b1484"),
+				Name = "John",
+				BirthDate = new DateTime(1975, 03, 17),
+				Version = Environment.TickCount
+			};
+
+			string tableName = "CustomTableName";
+
+			string n1 = nameof(person.Id);
+			string n2 = nameof(person.Name);
+			string n3 = nameof(person.BirthDate);
+			string n4 = nameof(person.Version);
+
+			string p1 = $"@#{n1}";
+			string p2 = $"@#{n2}";
+			string p3 = $"@#{n3}";
+			string p4 = $"@#{n4}";
+
+			(object, Type) p = default;
+
+			{   // Insert - all properties
+				var query = QB.Insert(person, tableName: tableName.AsSqlName());
+				string expectedSQL = $"INSERT [{tableName}] ([{n1}],[{n2}],[{n3}],[{n4}]) VALUES ({p1},{p2},{p3},{p4})";
+
+				Assert.IsTrue(query.SQL == expectedSQL);
+				Assert.IsTrue(query.ParameterMap.Count == 4);
+
+				p = query.ParameterMap[p1];
+				Assert.IsTrue((Guid)p.Item1 == person.Id);
+				Assert.IsTrue(p.Item2 == typeof(Guid));
+
+				p = query.ParameterMap[p2];
+				Assert.IsTrue((string)p.Item1 == person.Name);
+				Assert.IsTrue(p.Item2 == typeof(string));
+
+				p = query.ParameterMap[p3];
+				Assert.IsTrue((DateTime)p.Item1 == person.BirthDate);
+				Assert.IsTrue(p.Item2 == typeof(DateTime));
+
+				p = query.ParameterMap[p4];
+				Assert.IsTrue((int)p.Item1 == person.Version);
+				Assert.IsTrue(p.Item2 == typeof(int));
+			}
+			{   // Insert - excluded properties
+				var query = QB.Insert(person, excludedProperties: n => n == nameof(person.Version), tableName: tableName.AsSqlName());
+				string expectedSQL = $"INSERT [{tableName}] ([{n1}],[{n2}],[{n3}]) VALUES ({p1},{p2},{p3})";
+
+				Assert.IsTrue(query.SQL == expectedSQL);
+				Assert.IsTrue(query.ParameterMap.Count == 3);
+
+				p = query.ParameterMap[p1];
+				Assert.IsTrue((Guid)p.Item1 == person.Id);
+				Assert.IsTrue(p.Item2 == typeof(Guid));
+
+				p = query.ParameterMap[p2];
+				Assert.IsTrue((string)p.Item1 == person.Name);
+				Assert.IsTrue(p.Item2 == typeof(string));
+
+				p = query.ParameterMap[p3];
+				Assert.IsTrue((DateTime)p.Item1 == person.BirthDate);
+				Assert.IsTrue(p.Item2 == typeof(DateTime));
+			}
+
+			string p5 = $"@w@{n1}";
+			{   // Update - all properties
+				var query = QB.Update(person, tableName: tableName.AsSqlName());
+				string expectedSQL = $"UPDATE [{tableName}] SET [{n1}]={p1},[{n2}]={p2},[{n3}]={p3},[{n4}]={p4} WHERE [{n1}]={p5}";
+
+				Assert.IsTrue(query.SQL == expectedSQL);
+				Assert.IsTrue(query.ParameterMap.Count == 5);
+
+				p = query.ParameterMap[p1];
+				Assert.IsTrue((Guid)p.Item1 == person.Id);
+				Assert.IsTrue(p.Item2 == typeof(Guid));
+
+				p = query.ParameterMap[p2];
+				Assert.IsTrue((string)p.Item1 == person.Name);
+				Assert.IsTrue(p.Item2 == typeof(string));
+
+				p = query.ParameterMap[p3];
+				Assert.IsTrue((DateTime)p.Item1 == person.BirthDate);
+				Assert.IsTrue(p.Item2 == typeof(DateTime));
+
+				p = query.ParameterMap[p4];
+				Assert.IsTrue((int)p.Item1 == person.Version);
+				Assert.IsTrue(p.Item2 == typeof(int));
+
+				p = query.ParameterMap[p5];
+				Assert.IsTrue((Guid)p.Item1 == person.Id);
+				Assert.IsTrue(p.Item2 == typeof(Guid));
+			}
+			{   // Update - included properties - one property
+				var query = QB.Update(person, includedProperties: n => n == nameof(person.Name), tableName: tableName.AsSqlName());
+				string expectedSQL = $"UPDATE [{tableName}] SET [{n2}]={p2} WHERE [{n1}]={p5}";
+
+				Assert.IsTrue(query.SQL == expectedSQL);
+				Assert.IsTrue(query.ParameterMap.Count == 2);
+
+				p = query.ParameterMap[p2];
+				Assert.IsTrue((string)p.Item1 == person.Name);
+				Assert.IsTrue(p.Item2 == typeof(string));
+
+				p = query.ParameterMap[p5];
+				Assert.IsTrue((Guid)p.Item1 == person.Id);
+				Assert.IsTrue(p.Item2 == typeof(Guid));
+			}
+			{   // Update - included properties - all except two
+				var query = QB.Update(person, includedProperties: n => n != nameof(person.Id) && n!= nameof(person.Version), tableName: tableName.AsSqlName());
+				string expectedSQL = $"UPDATE [{tableName}] SET [{n2}]={p2},[{n3}]={p3} WHERE [{n1}]={p5}";
+
+				Assert.IsTrue(query.SQL == expectedSQL);
+				Assert.IsTrue(query.ParameterMap.Count == 3);
+
+				p = query.ParameterMap[p2];
+				Assert.IsTrue((string)p.Item1 == person.Name);
+				Assert.IsTrue(p.Item2 == typeof(string));
+
+				p = query.ParameterMap[p3];
+				Assert.IsTrue((DateTime)p.Item1 == person.BirthDate);
+				Assert.IsTrue(p.Item2 == typeof(DateTime));
+
+				p = query.ParameterMap[p5];
+				Assert.IsTrue((Guid)p.Item1 == person.Id);
+				Assert.IsTrue(p.Item2 == typeof(Guid));
+			}
+		}// Test_QB_Insert_Update()
 	}//class SanityTests
 }//ns

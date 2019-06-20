@@ -35,7 +35,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			foreach (var kvp in dict)
 			{
 				currentKey = kvp.Key;
-				if (excludedProperties != null && !excludedProperties(currentKey))
+				if (excludedProperties != null && excludedProperties(currentKey))
 					continue;
 
 				if (i++ != 0)
@@ -61,25 +61,25 @@ namespace SecurityDriven.TinyORM.Helpers
 		public static QueryInfo Update<T>(
 			T obj,
 			string whereSql = null,
-			Predicate<string> excludedProperties = null,
+			Predicate<string> includedProperties = null,
 			string tableName = null,
 			Dictionary<string, (object, Type)> dict = null
 		) where T : class
 		{
-			return Update<T, string>(obj: obj, whereSql: whereSql, whereParam: null, excludedProperties: excludedProperties, tableName: tableName, dict: dict);
+			return Update<T, string>(obj: obj, whereSql: whereSql, whereParam: null, includedProperties: includedProperties, tableName: tableName, dict: dict);
 		}// Update<T>
 
 		public static QueryInfo Update<T, TParamType>(
 			T obj,
 			string whereSql = null,
 			TParamType whereParam = null,
-			Predicate<string> excludedProperties = null,
+			Predicate<string> includedProperties = null,
 			string tableName = null,
 			Dictionary<string, (object, Type)> dict = null
 		) where T : class where TParamType : class
 		{
 			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
-			QueryInfo queryInfo = UpdateRaw<T>(obj, excludedProperties, tableName, dict);
+			QueryInfo queryInfo = UpdateRaw<T>(obj, includedProperties, tableName, dict);
 			var paramDictAlias = queryInfo.ParameterMap;
 			var whereParamMap = default(Dictionary<string, (object, Type)>);
 
@@ -87,7 +87,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			{
 				if (!dict.TryGetValue("Id", out var id)) throw new ArgumentException(@"""whereSql"" is empty and object does not contain ""Id"" property.");
 
-				whereSql = "Id=@w@Id";
+				whereSql = "[Id]=@w@Id";
 				paramDictAlias.Add("@w@Id", id);
 			}
 			else if (whereParam != null)
@@ -105,7 +105,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		#region UpdateRaw<T>()
 		internal static QueryInfo UpdateRaw<T>(
 			T obj,
-			Predicate<string> excludedProperties = null,
+			Predicate<string> includedProperties = null,
 			string tableName = null,
 			Dictionary<string, (object, Type)> dict = null
 		) where T : class
@@ -122,7 +122,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			foreach (var kvp in dict)
 			{
 				currentKey = kvp.Key;
-				if (excludedProperties != null && !excludedProperties(currentKey))
+				if (includedProperties != null && !includedProperties(currentKey))
 					continue;
 
 				if (i++ != 0)
@@ -134,7 +134,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				dictNew.Add(paramName, kvp.Value);
 			}//foreach
 
-			if (i == 0) throw new ArgumentException($"{nameof(excludedProperties)} predicate is false for all property names.", nameof(excludedProperties));
+			if (i == 0) throw new ArgumentException($"{nameof(includedProperties)} predicate is false for all property names.", nameof(includedProperties));
 			var result = QueryInfo.Create(sql: sb.ToString(), parameterMap: dictNew);
 			return result;
 		}// UpdateRaw<T>()

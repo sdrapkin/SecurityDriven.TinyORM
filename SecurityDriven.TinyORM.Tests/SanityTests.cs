@@ -59,7 +59,7 @@ namespace SecurityDriven.TinyORM.Tests
 			((Guid)firstRow["Guid"]).GetHashCode();
 			Assert.IsTrue((Guid)secondRow["Guid"] != (Guid)firstRow["Guid"]);
 			Assert.IsTrue((Guid)secondRow["Guid"] == Guid.Empty);
-			Console.WriteLine(tinyormVersion);
+			Console.WriteLine(nameof(tinyormVersion) + ": " + tinyormVersion);
 		}// ConnectionTest()
 
 		public class POCO

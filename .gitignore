@@ -249,3 +249,4 @@ ModelManifest.xml
 
 # Analysis
 *.xlsx
+/SecurityDriven.TinyORM.xml

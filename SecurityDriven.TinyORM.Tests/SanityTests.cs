@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -18,9 +19,9 @@ namespace SecurityDriven.TinyORM.Tests
 	[TestClass]
 	public class SanityTests
 	{
-		static readonly string connString = System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
-		static readonly string marsConnString = connString + ";MultipleActiveResultSets=True";
-		static readonly Version tinyormVersion = typeof(DbContext).Assembly.GetName().Version;
+		static string connString;
+		static string marsConnString = connString + ";MultipleActiveResultSets=True";
+		static Version tinyormVersion;
 
 		static DbContext db;
 		static DbContext marsdb;
@@ -28,6 +29,17 @@ namespace SecurityDriven.TinyORM.Tests
 		[ClassInitialize]
 		public static void Initialize(TestContext testContext)
 		{
+#if NETCOREAPP
+			var currentDirectory = System.IO.Directory.GetCurrentDirectory();
+			connString = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddXmlFile(currentDirectory + "\\App.config").Build()
+				.GetConnectionString("add:Test:connectionString");
+#else
+			connString = System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
+
+#endif
+			marsConnString = connString + ";MultipleActiveResultSets=True";
+			tinyormVersion = typeof(DbContext).Assembly.GetName().Version;
+
 			db = DbContext.Create(connString);
 			marsdb = DbContext.Create(marsConnString);
 		}
@@ -262,7 +274,7 @@ namespace SecurityDriven.TinyORM.Tests
 				}
 				catch (SqlException sqlEx)
 				{
-					if (sqlEx.Message.StartsWith("Execution Timeout Expired.")) return;
+					if (sqlEx.Message.IndexOf("Timeout Expired.", StringComparison.OrdinalIgnoreCase) >= 0) return;
 				}
 				catch (Exception ex)
 				{

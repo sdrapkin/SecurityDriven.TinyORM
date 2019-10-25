@@ -1,103 +1,46 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0E84451B-F5E1-48B0-8C25-09070E10971E}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SecurityDriven.TinyORM</RootNamespace>
-    <AssemblyName>SecurityDriven.TinyORM</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\SecurityDriven.TinyORM.XML</DocumentationFile>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.3.0</Version>
+    <Authors>Stan Drapkin</Authors>
+    <PackageId>TinyORM</PackageId>
+    <Company />
+    <PackageProjectUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM</PackageProjectUrl>
+    <Description>Simple, fast, and secure micro ORM for .NET.</Description>
+    <Copyright>Copyright (c) 2019 Stan Drapkin</Copyright>
+    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
+    <PackageTags>ORM .NET</PackageTags>
+    <PackageReleaseNotes>NetStandard2.0 support.
+Upgraded to use System.Data.SqlClient 4.7.0.</PackageReleaseNotes>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\SecurityDriven.TinyORM.XML</DocumentationFile>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DocumentationFile>C:\Users\sdrapkin\Dropbox\Code\SecurityDriven.TinyORM\SecurityDriven.TinyORM.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
+    <DocumentationFile>C:\Users\sdrapkin\Dropbox\Code\SecurityDriven.TinyORM\SecurityDriven.TinyORM.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>TinyORM.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
-    </Reference>
+    <Compile Remove="SecurityDriven.TinyORM.Tests\**" />
+    <EmbeddedResource Remove="SecurityDriven.TinyORM.Tests\**" />
+    <None Remove="SecurityDriven.TinyORM.Tests\**" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="CallerIdentity.cs" />
-    <Compile Include="ConnectionCache.cs" />
-    <Compile Include="ConnectionWrapper.cs" />
-    <Compile Include="DbContext.cs" />
-    <Compile Include="Extensions\CommandExtensions.cs" />
-    <Compile Include="Extensions\RowStoreListExtensions.cs" />
-    <Compile Include="Extensions\Extensions.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Helpers\QB.cs" />
-    <Compile Include="Helpers\SequentialGuid.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryInfo.cs" />
-    <Compile Include="ResultSetSchema.cs" />
-    <Compile Include="RowStore.cs" />
-    <Compile Include="RowStoreMetaObject.cs" />
-    <Compile Include="Snapshot.cs" />
-    <Compile Include="SqlCommandSetWrapper.cs" />
-    <Compile Include="QueryBatch.cs" />
-    <Compile Include="Utils\New.cs" />
-    <Compile Include="Utils\ReflectionHelper_Setter.cs" />
-    <Compile Include="Utils\ReflectionHelper_Getter.cs" />
-    <Compile Include="Utils\ReflectionHelper_ParameterizedGetter.cs" />
-    <Compile Include="Utils\ReflectionHelper_Shared.cs" />
-    <Compile Include="Utils\StringBuilderCache.cs" />
-    <Compile Include="Utils\Util.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="LICENSE.md" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="README.md" />
-    <None Include="TinyORM.snk" />
-    <None Include="TODO.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TinyORM-Logo-Icon.png" />
-    <Content Include="TinyORM-logo.png" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.6.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.6.0" />
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+		<Reference Include="System.Transactions" />
+	</ItemGroup>
+
 </Project>

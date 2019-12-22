@@ -224,7 +224,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			}
 
 			if (commandTimeout.HasValue)
-				command.CommandTimeout = commandTimeout.Value;
+				command.CommandTimeout = commandTimeout.GetValueOrDefault();
 		}// Setup<TparamType>()
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

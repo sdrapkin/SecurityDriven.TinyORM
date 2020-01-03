@@ -50,6 +50,21 @@ namespace SecurityDriven.TinyORM.Tests
 		}
 
 		[TestMethod]
+		public void VersionTest()
+		{
+			var assembly = typeof(TinyORM.DbContext).Assembly;
+			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+			const string expectedProductVersion = "1.3.1";
+			const string expectedFileVersion = "1.3.1.0";
+
+			Assert.IsTrue(fvi.ProductVersion == expectedProductVersion);
+			Assert.IsTrue(fvi.FileVersion == expectedFileVersion);
+
+			assembly.GetModules()[0].GetPEKind(out var kind, out var machine);
+			Assert.IsTrue(kind == System.Reflection.PortableExecutableKinds.ILOnly);
+		}// VersionTest()
+
+		[TestMethod]
 		public async Task ConnectionTest()
 		{
 			var results = await db.QueryAsync("select [Answer] = 1 + 2, [Guid] = NEWID() UNION ALL SELECT 5, 0x");
@@ -1115,7 +1130,7 @@ namespace SecurityDriven.TinyORM.Tests
 				Assert.IsTrue(p.Item2 == typeof(Guid));
 			}
 			{   // Update - included properties - all except two
-				var query = QB.Update(person, includedProperties: n => n != nameof(person.Id) && n!= nameof(person.Version), tableName: tableName.AsSqlName());
+				var query = QB.Update(person, includedProperties: n => n != nameof(person.Id) && n != nameof(person.Version), tableName: tableName.AsSqlName());
 				string expectedSQL = $"UPDATE [{tableName}] SET [{n2}]={p2},[{n3}]={p3} WHERE [{n1}]={p5}";
 
 				Assert.IsTrue(query.SQL == expectedSQL);

@@ -8,7 +8,7 @@ namespace SecurityDriven.TinyORM.Utils
 	public static class ReflectionHelper_Shared
 	{
 		static Type ObjectType = typeof(object);
-		static readonly ConstantExpression s_DbNullValue = Expression.Constant(DBNull.Value);
+		static ConstantExpression s_DbNullValue = Expression.Constant(DBNull.Value);
 
 		public const BindingFlags propertyBindingFlags = (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 		public const string PARAM_PREFIX = "@";

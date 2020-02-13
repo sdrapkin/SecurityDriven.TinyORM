@@ -81,7 +81,6 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			QueryInfo queryInfo = UpdateRaw<T>(obj, includedProperties, tableName, dict);
 			var paramDictAlias = queryInfo.ParameterMap;
-			var whereParamMap = default(Dictionary<string, (object, Type)>);
 
 			if (string.IsNullOrEmpty(whereSql))
 			{
@@ -92,7 +91,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			}
 			else if (whereParam != null)
 			{
-				whereParamMap = whereParam as Dictionary<string, (object, Type)> ?? ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(whereParam);
+				var whereParamMap = whereParam as Dictionary<string, (object, Type)> ?? ReflectionHelper_Shared.ObjectToDictionary_Parameterized<TParamType>(whereParam);
 				foreach (var kvp in whereParamMap)
 					paramDictAlias.Add(kvp.Key, kvp.Value);
 			}

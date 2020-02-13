@@ -7,11 +7,11 @@ namespace SecurityDriven.TinyORM.Utils
 	{
 		//========== IntToString() begin ==========
 		const int MAX_CACHED_INT_TO_STRING_ITEMS = 1000;
-		public static readonly System.Globalization.NumberFormatInfo InvariantNFI = System.Globalization.NumberFormatInfo.InvariantInfo;
-		static readonly string[] _intToStringCache = Enumerable.Range(0, MAX_CACHED_INT_TO_STRING_ITEMS).Select(i => i.ToString(InvariantNFI)).ToArray();
+		public static System.Globalization.NumberFormatInfo InvariantNFI = System.Globalization.NumberFormatInfo.InvariantInfo;
+		static string[] _intToStringCache = Enumerable.Range(0, MAX_CACHED_INT_TO_STRING_ITEMS).Select(i => i.ToString(InvariantNFI)).ToArray();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static string IntToString(ref int value) => value >= 0 && value < MAX_CACHED_INT_TO_STRING_ITEMS ? _intToStringCache[value] : value.ToString(InvariantNFI);
+		public static string IntToString(ref int value) => value < MAX_CACHED_INT_TO_STRING_ITEMS ? _intToStringCache[value] : value.ToString(InvariantNFI);
 
 		//========== IntToString() end ============
 
@@ -22,9 +22,9 @@ namespace SecurityDriven.TinyORM.Utils
 			public bool Equals(string x, string y) => string.Equals(x, y);
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public int GetHashCode(string obj) => obj.GetHashCode();
-			public static readonly FastStringComparer Instance = new FastStringComparer();
+			public static FastStringComparer Instance = new FastStringComparer();
 		}//class FastStringComparer
 
-		internal static class ZeroLengthArray<T> { public static readonly T[] Value = new T[0]; } // helps avoid unnecessary memory allocation
+		internal static class ZeroLengthArray<T> { public static T[] Value = new T[0]; } // helps avoid unnecessary memory allocation
 	}// class Util
 }//ns

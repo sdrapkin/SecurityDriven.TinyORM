@@ -12,7 +12,7 @@ namespace SecurityDriven.TinyORM
 			this.propertyMap = propertyMap;
 		}//ctor
 
-		readonly Dictionary<string, object> propertyMap;
+		Dictionary<string, object> propertyMap;
 
 		static Dictionary<string, object> GetObjectPropertiesAsDictionary<T>(T obj) where T : class
 		{
@@ -73,9 +73,7 @@ namespace SecurityDriven.TinyORM
 			return new Snapshot(externalPropertyMap);
 		}// Create<T>()
 
-		static readonly Predicate<string> noDifference = str => false;
-
 		/// <summary>Represents a predicate that Snapshot.Diff() returns when no differences are found.</summary>
-		public static Predicate<string> NoDifference => noDifference;
+		public static readonly Predicate<string> NoDifference = str => false;
 	}// class Snapshot
 }//ns

@@ -18,40 +18,37 @@ namespace SecurityDriven.TinyORM.Extensions
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static T[] ToObjectArray<T>(this List<RowStore> listOfRowStore, Func<T> objectFactory) where T : class
 		{
-			unchecked
+			var listOfRowStoreAlias = listOfRowStore;
+			int newArrayLength = listOfRowStoreAlias.Count;
+			T[] newArray = new T[newArrayLength];
+			if (newArrayLength == 0) return newArray;
+
+			var objectFactoryAlias = objectFactory;
+			RowStore[] arrayOfRowStore = listOfRowStoreAlias.GetList_itemsArray();
+			ref RowStore firstElement = ref arrayOfRowStore[0];
+
+			var settersArray = new Action<T, object>[firstElement.RowValues.Length];
+
+			var fieldNames = firstElement.Schema.FieldNames;
+			var settersMap = ReflectionHelper_Setter<T>.Setters;
+			for (int i = 0; i < fieldNames.Length; ++i)
 			{
-				var listOfRowStoreAlias = listOfRowStore;
-				int newArrayLength = listOfRowStoreAlias.Count;
-				T[] newArray = new T[newArrayLength];
-				if (newArrayLength == 0) return newArray;
+				if (settersMap.TryGetValue(fieldNames[i], out var setter))
+					settersArray[i] = setter;
+			}
 
-				var objectFactoryAlias = objectFactory;
-				RowStore[] arrayOfRowStore = listOfRowStoreAlias.GetList_itemsArray();
-				ref RowStore firstElement = ref arrayOfRowStore[0];
+			Parallel.For(0, newArrayLength, i =>
+			{
+				T objT = objectFactoryAlias();
+				newArray[i] = objT;
+				object[] rowValues = arrayOfRowStore[i].RowValues;
 
-				var settersArray = new Action<T, object>[firstElement.RowValues.Length];
-
-				var fieldNames = firstElement.Schema.FieldNames;
-				var settersMap = ReflectionHelper_Setter<T>.Setters;
-				for (int i = 0; i < fieldNames.Length; ++i)
+				for (i = 0; i < rowValues.Length; ++i)
 				{
-					if (settersMap.TryGetValue(fieldNames[i], out var setter))
-						settersArray[i] = setter;
-				}
-
-				Parallel.For(0, newArrayLength, i =>
-				{
-					T objT = objectFactoryAlias();
-					newArray[i] = objT;
-					object[] rowValues = arrayOfRowStore[i].RowValues;
-
-					for (i = 0; i < rowValues.Length; ++i)
-					{
-						settersArray[i]?.Invoke(objT, rowValues[i]);
-					}//for
+					settersArray[i]?.Invoke(objT, rowValues[i]);
+				}//for
 				});
-				return newArray;
-			}//unchecked
+			return newArray;
 		}// ToObjectArray<T>()
 
 		/// <summary>Converts a List of RowStore into an array of T-objects using a provided object mapper. Parallelized.</summary>

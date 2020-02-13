@@ -15,7 +15,7 @@ namespace SecurityDriven.TinyORM
 
 	public sealed class DbContext
 	{
-		internal readonly string connectionString;
+		internal string connectionString;
 
 		public string ConnectionString { [MethodImpl(MethodImplOptions.AggressiveInlining)] get { return this.connectionString; } }
 
@@ -375,44 +375,41 @@ namespace SecurityDriven.TinyORM
 		{
 			var rowStoreList = new List<T>(capacity: 8);
 
-			unchecked
+			if (reader.Read())
 			{
-				if (reader.Read())
-				{
-					var rowEntity = entityFactory();
-					int i = reader.FieldCount;
+				var rowEntity = entityFactory();
+				int i = reader.FieldCount;
 
-					var rowValues = new object[i];
+				var rowValues = new object[i];
+				reader.GetValues(rowValues);
+
+				var setterArray = new Action<T, object>[i];
+				var setters = ReflectionHelper_Setter<T>.Setters;
+				for (i = 0; i < rowValues.Length; ++i)
+				{
+					var fieldName = reader.GetName(i);
+					if (setters.TryGetValue(fieldName, out var setter))
+					{
+						setter(rowEntity, rowValues[i]);
+						setterArray[i] = setter;
+					}
+				}
+
+				rowStoreList.Add(rowEntity);
+
+				while (reader.Read())
+				{
+					rowEntity = entityFactory();
 					reader.GetValues(rowValues);
 
-					var setterArray = new Action<T, object>[i];
-					var setters = ReflectionHelper_Setter<T>.Setters;
 					for (i = 0; i < rowValues.Length; ++i)
 					{
-						var fieldName = reader.GetName(i);
-						if (setters.TryGetValue(fieldName, out var setter))
-						{
-							setter(rowEntity, rowValues[i]);
-							setterArray[i] = setter;
-						}
-					}
+						setterArray[i]?.Invoke(rowEntity, rowValues[i]);
+					}//for
 
 					rowStoreList.Add(rowEntity);
-
-					while (reader.Read())
-					{
-						rowEntity = entityFactory();
-						reader.GetValues(rowValues);
-
-						for (i = 0; i < rowValues.Length; ++i)
-						{
-							setterArray[i]?.Invoke(rowEntity, rowValues[i]);
-						}//for
-
-						rowStoreList.Add(rowEntity);
-					}
-				}// if 1st row is read
-			}// unchecked
+				}
+			}// if 1st row is read
 
 			return rowStoreList;
 		}// FetchSingleEntityResultSet()
@@ -423,16 +420,13 @@ namespace SecurityDriven.TinyORM
 		internal static List<List<RowStore>> FetchMultipleRowStoreResultSets(SqlDataReader reader)
 		{
 			var resultSetList = new List<List<RowStore>>(4);
-			unchecked
-			{
-				int resultSetId = 0;
+			int resultSetId = 0;
 
-				do
-				{
-					var rowStoreList = FetchSingleRowStoreResultSet(reader, resultSetId++);
-					resultSetList.Add(rowStoreList);
-				} while (reader.NextResult());
-			}// unchecked
+			do
+			{
+				var rowStoreList = FetchSingleRowStoreResultSet(reader, resultSetId++);
+				resultSetList.Add(rowStoreList);
+			} while (reader.NextResult());
 			return resultSetList;
 		}// FetchMultipleRowStoreResultSets()
 		#endregion
@@ -441,36 +435,34 @@ namespace SecurityDriven.TinyORM
 		internal static List<RowStore> FetchSingleRowStoreResultSet(SqlDataReader reader, int resultSetId = 0)
 		{
 			var rowStoreList = new List<RowStore>(capacity: 8);
-			unchecked
-			{
-				if (reader.Read())
-				{
-					int fieldCount = reader.FieldCount;
-					int fieldCountPlusOne = fieldCount + 1;
-					var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
-					var fieldNames = new string[fieldCount];
-					for (int i = 0; i < fieldNames.Length; ++i)
-					{
-						var fieldName = reader.GetName(i);
-						fieldMap.Add(fieldName, i);
-						fieldNames[i] = fieldName;
-					}
-					var resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
 
-					var rowValues = new object[fieldCountPlusOne];
+			if (reader.Read())
+			{
+				int fieldCount = reader.FieldCount;
+				int fieldCountPlusOne = fieldCount + 1;
+				var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
+				var fieldNames = new string[fieldCount];
+				for (int i = 0; i < fieldNames.Length; ++i)
+				{
+					var fieldName = reader.GetName(i);
+					fieldMap.Add(fieldName, i);
+					fieldNames[i] = fieldName;
+				}
+				var resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
+
+				var rowValues = new object[fieldCountPlusOne];
+				rowValues[fieldCount] = resultSchema;
+				reader.GetValues(rowValues);
+				rowStoreList.Add(new RowStore(rowValues));
+
+				while (reader.Read())
+				{
+					rowValues = new object[fieldCountPlusOne];
 					rowValues[fieldCount] = resultSchema;
 					reader.GetValues(rowValues);
 					rowStoreList.Add(new RowStore(rowValues));
-
-					while (reader.Read())
-					{
-						rowValues = new object[fieldCountPlusOne];
-						rowValues[fieldCount] = resultSchema;
-						reader.GetValues(rowValues);
-						rowStoreList.Add(new RowStore(rowValues));
-					}
-				}// if 1st read
-			}// unchecked
+				}
+			}// if 1st read
 			return rowStoreList;
 		}// FetchSingleRowStoreResultSet()
 		#endregion
@@ -519,7 +511,7 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region CallerIdentity
-		static readonly Func<CallerIdentity> anonymousCallerIdentityDelegate = () => CallerIdentity.Anonymous;
+		static Func<CallerIdentity> anonymousCallerIdentityDelegate = () => CallerIdentity.Anonymous;
 		Func<CallerIdentity> callerIdentityDelegate = anonymousCallerIdentityDelegate;
 		public Func<CallerIdentity> CallerIdentityDelegate
 		{

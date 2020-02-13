@@ -77,7 +77,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			return p;
 		}// GenerateParameter()
 
-		static readonly Type s_DateTimeType = typeof(DateTime);
+		static Type s_DateTimeType = typeof(DateTime);
 		#endregion
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities")]
@@ -243,7 +243,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			return Utils.StringBuilderCache.GetStringAndRelease(sb);
 		}// GetParamString()
 
-		static readonly Dictionary<Type, DbType> typeMap = new Dictionary<Type, DbType>
+		static Dictionary<Type, DbType> typeMap = new Dictionary<Type, DbType>
 		{
 			{ typeof(byte),  DbType.Byte },
 			{ typeof(sbyte), DbType.SByte },

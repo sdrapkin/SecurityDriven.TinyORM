@@ -9,10 +9,10 @@ namespace SecurityDriven.TinyORM
 	using Utils;
 
 	#region struct RowStore
-	public readonly struct RowStore : IReadOnlyDictionary<string, object>, IDynamicMetaObjectProvider, IEquatable<RowStore>
+	public struct RowStore : IReadOnlyDictionary<string, object>, IDynamicMetaObjectProvider, IEquatable<RowStore>
 	{
-		static readonly FieldNotFound notFound = new FieldNotFound();
-		public readonly object[] RowValues;
+		static FieldNotFound notFound = new FieldNotFound();
+		public object[] RowValues;
 
 		internal RowStore(object[] rowValues) => this.RowValues = rowValues;
 
@@ -71,7 +71,7 @@ namespace SecurityDriven.TinyORM
 			var rowValues = this.RowValues;
 			for (int i = 0; i < fieldNames.Length; ++i)
 			{
-				yield return new KeyValuePair<string, object>(fieldNames[i], RowValues[i]);
+				yield return new KeyValuePair<string, object>(fieldNames[i], rowValues[i]);
 			}
 		}
 

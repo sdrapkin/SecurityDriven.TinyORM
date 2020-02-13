@@ -10,7 +10,7 @@ namespace SecurityDriven.TinyORM
 
 	internal static class ConnectionCache
 	{
-		public static readonly ConcurrentDictionary<Transaction, ConnectionWrapperContainer> transactionConnections = new ConcurrentDictionary<Transaction, ConnectionWrapperContainer>();
+		public static ConcurrentDictionary<Transaction, ConnectionWrapperContainer> transactionConnections = new ConcurrentDictionary<Transaction, ConnectionWrapperContainer>();
 
 		public static ConnectionWrapper GetTransactionLinkedConnection(DbContext db)
 		{
@@ -23,7 +23,7 @@ namespace SecurityDriven.TinyORM
 			}
 
 			ConnectionWrapper wrappedConnection = null;
-			ref readonly var _connectionString = ref db.connectionString;
+			ref var _connectionString = ref db.connectionString;
 			var connectionWrapperContainer = transactionConnections.GetOrAdd(key: currentTransaction, valueFactory: _getNewConnectionCache);
 
 			lock (connectionWrapperContainer)
@@ -37,7 +37,7 @@ namespace SecurityDriven.TinyORM
 						_containerConnectionString = _connectionString;
 						wrappedConnection = db.GetNewWrappedConnection();
 						_containerConnectionWrapper = wrappedConnection;
-						currentTransaction.TransactionCompleted += OnTransactionCompleted;
+						currentTransaction.TransactionCompleted += OnTransactionCompletedAction;
 						break;
 					}
 
@@ -77,6 +77,8 @@ namespace SecurityDriven.TinyORM
 			return wrappedConnection;
 		}// GetTransactionLinkedConnection()
 
+		static TransactionCompletedEventHandler OnTransactionCompletedAction = OnTransactionCompleted;
+
 		static void OnTransactionCompleted(object sender, TransactionEventArgs e)
 		{
 			if (!transactionConnections.TryRemove(e.Transaction, out var connectionWrapperContainer)) return; // should never happen
@@ -107,7 +109,7 @@ namespace SecurityDriven.TinyORM
 			}// while (true)
 		}// OnTransactionCompleted()
 
-		static readonly Func<Transaction, ConnectionWrapperContainer> _getNewConnectionCache = transaction => new ConnectionWrapperContainer();
+		static Func<Transaction, ConnectionWrapperContainer> _getNewConnectionCache = transaction => new ConnectionWrapperContainer();
 
 		internal sealed class ConnectionWrapperContainer
 		{

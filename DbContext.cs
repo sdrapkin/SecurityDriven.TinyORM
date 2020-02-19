@@ -185,7 +185,7 @@ namespace SecurityDriven.TinyORM
 			if (batchSize == 0) batchSize = this.BatchSize;
 			int shortBatchSize = batchSize / 3;
 
-			var callerIdentity = callerIdentityDelegate();
+			byte[] callerIdentity = callerIdentityDelegate?.Invoke().UserIdAsBytes ?? Utils.Util.ZeroLengthArray<byte>.Value;
 
 			var batches = queryBatch.queryList.GroupBy(_ =>
 			{
@@ -215,7 +215,7 @@ namespace SecurityDriven.TinyORM
 									command.SetParametersFromDictionary(element.Item2);
 								}
 
-								command.SetupMetaParameters(callerIdentity.UserIdAsBytes, callerMemberName, callerFilePath, callerLineNumber);
+								command.SetupMetaParameters(callerIdentity, callerMemberName, callerFilePath, callerLineNumber);
 								sqlCommandSetWrapper.Append(command);
 							}//foreach element loop
 
@@ -251,7 +251,7 @@ namespace SecurityDriven.TinyORM
 				try
 				{
 					var comm = new SqlCommand(null, connWrapper.Connection);
-					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+					comm.Setup(sql, param, callerIdentityDelegate?.Invoke().UserIdAsBytes ?? Util.ZeroLengthArray<byte>.Value, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
 					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.Default, cancellationToken).ConfigureAwait(false);
@@ -297,7 +297,7 @@ namespace SecurityDriven.TinyORM
 				try
 				{
 					var comm = new SqlCommand(null, connWrapper.Connection);
-					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+					comm.Setup(sql, param, callerIdentityDelegate?.Invoke().UserIdAsBytes ?? Util.ZeroLengthArray<byte>.Value, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
 					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
@@ -343,7 +343,7 @@ namespace SecurityDriven.TinyORM
 				try
 				{
 					var comm = new SqlCommand(null, connWrapper.Connection);
-					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+					comm.Setup(sql, param, callerIdentityDelegate?.Invoke().UserIdAsBytes ?? Util.ZeroLengthArray<byte>.Value, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
 					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					var reader = await comm.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
@@ -511,18 +511,18 @@ namespace SecurityDriven.TinyORM
 		#endregion
 
 		#region CallerIdentity
-		static Func<CallerIdentity> anonymousCallerIdentityDelegate = () => CallerIdentity.Anonymous;
-		Func<CallerIdentity> callerIdentityDelegate = anonymousCallerIdentityDelegate;
+		Func<CallerIdentity> callerIdentityDelegate = null;
 		public Func<CallerIdentity> CallerIdentityDelegate
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			get { return this.callerIdentityDelegate; }
+			get { return this.callerIdentityDelegate ?? CallerIdentity.AnonymousDelegate; }
 
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			set
 			{
 				var newCallerIdentityDelegate = value;
 				if (newCallerIdentityDelegate == null) ThrowArgumentNullException();
+				if (newCallerIdentityDelegate == CallerIdentity.AnonymousDelegate) newCallerIdentityDelegate = null;
 				Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
 
 				void ThrowArgumentNullException() => throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
@@ -557,7 +557,7 @@ namespace SecurityDriven.TinyORM
 				using (var connWrapper = this.GetWrappedConnection())
 				{
 					var comm = new SqlCommand(null, connWrapper.Connection);
-					comm.Setup(sql, param, callerIdentityDelegate().UserIdAsBytes, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
+					comm.Setup(sql, param, callerIdentityDelegate?.Invoke().UserIdAsBytes ?? Util.ZeroLengthArray<byte>.Value, commandTimeout, sqlTextOnly, callerMemberName, callerFilePath, callerLineNumber);
 
 					if (connWrapper.Connection.State != ConnectionState.Open) connWrapper.Connection.Open();
 					using (var reader = await comm.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))

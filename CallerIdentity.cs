@@ -47,8 +47,12 @@ namespace SecurityDriven.TinyORM
 		/// Gets the anonymous caller identity.
 		/// </summary>
 		/// <value>The anonymous caller identity.</value>
-		public static CallerIdentity Anonymous => anonymousIdentity;
+		public static readonly CallerIdentity Anonymous = new CallerIdentity(Guid.Empty);
 
-		static CallerIdentity anonymousIdentity = new CallerIdentity(Guid.Empty);
+		/// <summary>
+		/// Gets the anonymous caller identity delegate.
+		/// </summary>
+		/// <value>The anonymous caller identity delegate.</value>
+		public static readonly Func<CallerIdentity> AnonymousDelegate = () => Anonymous;
 	}// class CallerIdentity
 }//ns

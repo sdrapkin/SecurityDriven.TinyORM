@@ -14,7 +14,8 @@
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>
-    <PackageReleaseNotes>Upgraded to use System.Data.SqlClient 4.8.0.</PackageReleaseNotes>
+    <PackageReleaseNotes>Performance improvements.
+Upgraded to use System.Data.SqlClient 4.8.1.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
@@ -32,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />

@@ -81,15 +81,13 @@ namespace SecurityDriven.TinyORM
 
 		static void OnTransactionCompleted(object sender, TransactionEventArgs e)
 		{
-			if (!transactionConnections.TryRemove(e.Transaction, out var connectionWrapperContainer)) return; // should never happen
-
-			while (true)
+			if (transactionConnections.TryRemove(e.Transaction, out var connectionWrapperContainer))
 			{
 				ref var _containerConnectionWrapper = ref connectionWrapperContainer.ConnectionWrapper;
 				if (_containerConnectionWrapper != null)
 				{
 					_containerConnectionWrapper.Dispose();
-					break;
+					return;
 				}
 
 				ref var _containerConnectionWrapperDictionary = ref connectionWrapperContainer.ConnectionWrapperDictionary;
@@ -104,9 +102,8 @@ namespace SecurityDriven.TinyORM
 						}
 						catch { }
 					}// while enumerator
-					break;
-				}
-			}// while (true)
+				}// if dictionary
+			}// if connectionWrapperContainer
 		}// OnTransactionCompleted()
 
 		static Func<Transaction, ConnectionWrapperContainer> _getNewConnectionCache = transaction => new ConnectionWrapperContainer();

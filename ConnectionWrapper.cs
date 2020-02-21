@@ -18,7 +18,7 @@ namespace SecurityDriven.TinyORM
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Dispose()
 		{
-			int count = Interlocked.Decrement(ref refCount);
+			int count = Interlocked.Add(ref refCount, -1);
 			if (count == 0)
 			{
 				this.Connection.Close();
@@ -29,7 +29,7 @@ namespace SecurityDriven.TinyORM
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void IncrementUseCount()
 		{
-			Interlocked.Increment(ref refCount);
-		}//AddRef()
+			Interlocked.Add(ref refCount, +1);
+		}//IncrementUseCount()
 	}//class ConnectionWrapper
 }//ns

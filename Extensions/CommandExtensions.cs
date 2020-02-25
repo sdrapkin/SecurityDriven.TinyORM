@@ -18,6 +18,17 @@ namespace SecurityDriven.TinyORM.Extensions
 		{
 			var p = new SqlParameter() { ParameterName = parameterName };
 
+			if (parameterValue is ValueType dataValue)
+			{
+				// if data is DateTime, switch to higher precision of DateTime2
+				if (parameterType == s_DateTimeType) p.DbType = DbType.DateTime2;
+
+				p.Value = parameterValue;
+				return p;
+			}
+
+			// data is not a struct
+
 			if (parameterValue == null)
 			{
 				var dbType = typeMap[parameterType];
@@ -27,51 +38,40 @@ namespace SecurityDriven.TinyORM.Extensions
 				return p;
 			}
 
-			if (parameterValue is ValueType dataValue)
-			{
-				// if data is DateTime, switch to higher precision of DateTime2
-				if (parameterType == s_DateTimeType) p.DbType = DbType.DateTime2;
+			var stringType = StringType.NVARCHAR;
 
-				p.Value = parameterValue;
-				return p;
+			// check if data is DbString
+			if (parameterValue is DbString dbString)
+			{
+				parameterValue = dbString.Item1;
+				stringType = dbString.Item2;
+				p.DbType = (DbType)stringType;
 			}
-			else
+
+			switch (parameterValue)
 			{
-				var stringType = StringType.NVARCHAR;
+				// check if data is regular string
+				case string dataString:
+					int lenThreshold = (stringType == StringType.NVARCHAR || stringType == StringType.NCHAR) ? MAX_UNICODE_STRING_LENGTH : MAX_ANSI_STRING_LENGTH;
+					p.Size = dataString.Length > lenThreshold ? -1 : lenThreshold;
+					p.Value = parameterValue;
+					return p;
 
-				// check if data is DbString
-				if (parameterValue is DbString dbString)
-				{
-					parameterValue = dbString.Item1;
-					stringType = dbString.Item2;
-					p.DbType = (DbType)stringType;
-				}
+				// check if data is NULL
+				case Type type:
+					var dbType = typeMap[type];
+					p.DbType = dbType;
+					if (dbType == DbType.Binary) p.Size = -1;
+					p.Value = DBNull.Value;
+					return p;
 
-				switch (parameterValue)
-				{
-					// check if data is regular string
-					case string dataString:
-						int lenThreshold = (stringType == StringType.NVARCHAR || stringType == StringType.NCHAR) ? MAX_UNICODE_STRING_LENGTH : MAX_ANSI_STRING_LENGTH;
-						p.Size = dataString.Length > lenThreshold ? -1 : lenThreshold;
-						p.Value = parameterValue;
-						return p;
-
-					// check if data is NULL
-					case Type type:
-						var dbType = typeMap[type];
-						p.DbType = dbType;
-						if (dbType == DbType.Binary) p.Size = -1;
-						p.Value = DBNull.Value;
-						return p;
-
-					// check if data is TVP
-					case DataTable dataTable:
-						p.SqlDbType = SqlDbType.Structured;
-						p.TypeName = dataTable.TableName;
-						p.Value = dataTable;
-						return p;
-				}//switch on parameterValue type
-			}// data is not a struct
+				// check if data is TVP
+				case DataTable dataTable:
+					p.SqlDbType = SqlDbType.Structured;
+					p.TypeName = dataTable.TableName;
+					p.Value = dataTable;
+					return p;
+			}//switch on parameterValue type
 
 			p.Value = parameterValue;
 			return p;

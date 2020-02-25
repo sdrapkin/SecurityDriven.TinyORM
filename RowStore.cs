@@ -85,7 +85,7 @@ namespace SecurityDriven.TinyORM
 		public override int GetHashCode() => this.RowValues.GetHashCode();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public override bool Equals(object obj) => this == (RowStore)obj;
+		public override bool Equals(object obj) => obj is RowStore rowStore && Equals(rowStore);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Equals(RowStore other) => this.RowValues == other.RowValues;

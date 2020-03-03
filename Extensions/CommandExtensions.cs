@@ -243,7 +243,7 @@ namespace SecurityDriven.TinyORM.Extensions
 			return Utils.StringBuilderCache.GetStringAndRelease(sb);
 		}// GetParamString()
 
-		static Dictionary<Type, DbType> typeMap = new Dictionary<Type, DbType>
+		static Dictionary<Type, DbType> typeMap = new Dictionary<Type, DbType>(new Dictionary<Type, DbType>
 		{
 			{ typeof(byte),  DbType.Byte },
 			{ typeof(sbyte), DbType.SByte },
@@ -282,6 +282,6 @@ namespace SecurityDriven.TinyORM.Extensions
 			{ typeof(DateTimeOffset?), DbType.DateTimeOffset },
 			{ typeof(TimeSpan?), DbType.Time },
 			{ typeof(Object), DbType.Object }
-		};//typeMap
+		}, Util.FastTypeComparer.Instance); //typeMap
 	}//class CommandExtensions
 }//ns

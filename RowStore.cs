@@ -33,7 +33,7 @@ namespace SecurityDriven.TinyORM
 				var result = this.RowValues[i];
 				return result == DBNull.Value ? null : result;
 
-				void ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
+				static void ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 			}
 		}
 
@@ -54,11 +54,11 @@ namespace SecurityDriven.TinyORM
 			{
 				if (!TryGetIndex(key, out var index))
 				{
-					ThrowArgumentException();
+					ThrowArgumentException(key);
 				}
 				this.RowValues[index] = value ?? DBNull.Value;
 
-				void ThrowArgumentException() => throw new ArgumentException("\"" + key + "\" column is not found.");
+				static void ThrowArgumentException(string arg) => throw new ArgumentException("\"" + arg + "\" column is not found.");
 			}//set
 		}
 

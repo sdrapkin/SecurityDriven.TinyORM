@@ -525,7 +525,7 @@ namespace SecurityDriven.TinyORM
 				if (newCallerIdentityDelegate == CallerIdentity.AnonymousDelegate) newCallerIdentityDelegate = null;
 				Interlocked.CompareExchange(ref this.callerIdentityDelegate, newCallerIdentityDelegate, this.callerIdentityDelegate);
 
-				void ThrowArgumentNullException() => throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
+				static void ThrowArgumentNullException() => throw new ArgumentNullException(nameof(newCallerIdentityDelegate));
 			}
 		}// CallerIdentityDelegate			
 		#endregion

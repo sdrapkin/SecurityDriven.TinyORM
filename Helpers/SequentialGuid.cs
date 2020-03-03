@@ -119,7 +119,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				if (UuidCreateSequential(out var g) == RPC_S_OK) return g;
 				return ThrowException();
 
-				Guid ThrowException() => throw new Exception("UuidCreateSequential did not return RPC_S_OK.");
+				static Guid ThrowException() => throw new Exception("UuidCreateSequential did not return RPC_S_OK.");
 			}//GetSequentialUuid()
 		}// struct GuidStruct
 		#endregion

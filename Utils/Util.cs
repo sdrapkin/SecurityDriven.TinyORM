@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace SecurityDriven.TinyORM.Utils
@@ -24,6 +25,16 @@ namespace SecurityDriven.TinyORM.Utils
 			public int GetHashCode(string obj) => obj.GetHashCode();
 			public static FastStringComparer Instance = new FastStringComparer();
 		}//class FastStringComparer
+
+		internal sealed class FastTypeComparer : System.Collections.Generic.IEqualityComparer<Type>
+		{
+			FastTypeComparer() { }
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public bool Equals(Type x, Type y) => x == y;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public int GetHashCode(Type obj) => RuntimeHelpers.GetHashCode(obj);
+			public static FastTypeComparer Instance = new FastTypeComparer();
+		}//class FastTypeComparer
 
 		internal static class ZeroLengthArray<T> { public static T[] Value = new T[0]; } // helps avoid unnecessary memory allocation
 	}// class Util

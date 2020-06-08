@@ -27,11 +27,19 @@ namespace SecurityDriven.TinyORM.Extensions
 				return p;
 			}
 
-			// data is not a struct
+			// data is not a struct. However, it can still be Nullable<T> where T is custom Enum type
 
 			if (parameterValue == null)
 			{
-				var dbType = typeMap[parameterType];
+				if (!typeMap.TryGetValue(parameterType, out var dbType))
+				{
+					Type nullableUnderlyingType = Nullable.GetUnderlyingType(parameterType);
+					if (nullableUnderlyingType != null && nullableUnderlyingType.IsEnum)
+					{
+						Type enumUnderlyingType = Enum.GetUnderlyingType(nullableUnderlyingType);
+						typeMap.TryGetValue(enumUnderlyingType, out dbType);
+					}
+				}
 				p.DbType = dbType;
 				if (dbType == DbType.Binary) p.Size = -1;
 				p.Value = DBNull.Value;

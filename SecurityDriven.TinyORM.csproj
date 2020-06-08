@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.3.2</Version>
+    <Version>1.3.3</Version>
     <Authors>Stan Drapkin</Authors>
     <PackageId>TinyORM</PackageId>
     <Company />
@@ -14,8 +14,7 @@
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>
-    <PackageReleaseNotes>Performance improvements.
-Upgraded to use System.Data.SqlClient 4.8.1.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added support for auto-conversion of Nullable&lt;CustomEnum&gt; types into underlying integral db types.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">

@@ -54,8 +54,8 @@ namespace SecurityDriven.TinyORM.Tests
 		{
 			var assembly = typeof(TinyORM.DbContext).Assembly;
 			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-			const string expectedProductVersion = "1.3.2";
-			const string expectedFileVersion = "1.3.2.0";
+			const string expectedProductVersion = "1.3.3";
+			const string expectedFileVersion = "1.3.3.0";
 
 			Assert.IsTrue(fvi.ProductVersion == expectedProductVersion);
 			Assert.IsTrue(fvi.FileVersion == expectedFileVersion);
@@ -1149,5 +1149,37 @@ namespace SecurityDriven.TinyORM.Tests
 				Assert.IsTrue(p.Item2 == typeof(Guid));
 			}
 		}// Test_QB_Insert_Update()
+
+		public enum Stage : byte
+		{
+			StageOne = 1,
+			StageTwo = 2
+		}
+
+		[TestMethod]
+		public async Task NullableCustomEnumTests()
+		{
+			const string Name = nameof(Name);
+			const string Stage = nameof(Stage);
+			{
+				var sql = $"SELECT [{Name}] = @name, [{Stage}] = @stage;";
+				var parameters = new { @name = "Stan", @stage = (Stage?)null };
+
+				var result = (await db.QueryAsync(sql, parameters).ConfigureAwait(false))[0];
+
+				Assert.IsTrue((string)result[Name] == "Stan");
+				Assert.IsTrue((Stage?)result[Stage] == null);
+			}
+
+			{
+				var sql = $"SELECT [{Stage}] = @stage INTO #x; EXEC tempdb..sp_columns '#x';";
+				var parameters = new { @stage = (Stage?)null };
+
+				var result = (await db.QueryAsync(sql, parameters).ConfigureAwait(false))[0];
+				Assert.IsTrue((string)result["TYPE_NAME"] == "tinyint");
+				Assert.IsTrue((int)result["LENGTH"] == 1);
+				Assert.IsTrue((short)result["NULLABLE"] == 1);
+			}
+		}// NullableCustomEnumTests()
 	}//class SanityTests
 }//ns

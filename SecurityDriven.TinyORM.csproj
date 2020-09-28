@@ -14,15 +14,20 @@
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>
-    <PackageReleaseNotes>Added support for auto-conversion of Nullable&lt;CustomEnum&gt; types into underlying integral db types.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added support for auto-conversion of Nullable&lt;CustomEnum&gt; types into underlying integral db types.
+Upgraded System.Data.SqlClient dependency to v4.8.2.</PackageReleaseNotes>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>TinyORM.snk</AssemblyOriginatorKeyFile>
+    <RepositoryUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-    <DocumentationFile>C:\Users\sdrapkin\Dropbox\Code\SecurityDriven.TinyORM\SecurityDriven.TinyORM.xml</DocumentationFile>
+    <DocumentationFile>SecurityDriven.TinyORM.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
-    <DocumentationFile>C:\Users\sdrapkin\Dropbox\Code\SecurityDriven.TinyORM\SecurityDriven.TinyORM.xml</DocumentationFile>
+    <DocumentationFile>SecurityDriven.TinyORM.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />

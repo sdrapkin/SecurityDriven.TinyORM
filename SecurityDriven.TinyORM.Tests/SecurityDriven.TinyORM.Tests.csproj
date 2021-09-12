@@ -16,8 +16,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="5.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.2.6" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.6" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.7" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.7" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 	</ItemGroup>

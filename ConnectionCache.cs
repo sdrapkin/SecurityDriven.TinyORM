@@ -19,8 +19,9 @@ namespace SecurityDriven.TinyORM
 			if (currentTransaction == null) return null;
 			if (currentTransaction.TransactionInformation.Status == TransactionStatus.Aborted)
 			{
-				throw new TransactionAbortedException(nameof(GetTransactionLinkedConnection) + "() called on an already-aborted transaction.");
+				Throw_TransactionAbortedException();
 			}
+			static void Throw_TransactionAbortedException() => throw new TransactionAbortedException(nameof(GetTransactionLinkedConnection) + "() called on an already-aborted transaction.");
 
 			ConnectionWrapper wrappedConnection = null;
 			ref var _connectionString = ref db.connectionString;

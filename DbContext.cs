@@ -535,7 +535,7 @@ namespace SecurityDriven.TinyORM
 		ConnectionWrapper GetWrappedConnection() => ConnectionCache.GetTransactionLinkedConnection(this) ?? this.GetNewWrappedConnection();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal ConnectionWrapper GetNewWrappedConnection() => new ConnectionWrapper(new SqlConnection(this.connectionString, credential: null));
+		internal ConnectionWrapper GetNewWrappedConnection() => new ConnectionWrapper(new SqlConnection(this.connectionString));
 		#endregion
 
 		#region SequentialReaderAsync()

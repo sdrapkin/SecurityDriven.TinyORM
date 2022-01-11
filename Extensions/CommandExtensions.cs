@@ -91,7 +91,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities")]
 		static void ProcessParameter(ref SqlCommand command, ref SqlParameterCollection sqlParameterCollection, ref string name, ref object value, ref Type type)
 		{
-			if (value is IEnumerable propValueEnumerable && !(value is string s) && !(value is byte[] b))
+			if (value is IEnumerable propValueEnumerable && (value is not string) && (value is not byte[]))
 			{
 				int count = 0;
 				Type enumerableType = null;
@@ -152,7 +152,7 @@ namespace SecurityDriven.TinyORM.Extensions
 		internal static void SetupParameters<TParamType>(this SqlCommand command, TParamType param) where TParamType : class
 		{
 			{
-				if (!(param is Dictionary<string, (object, Type)> dictParam))
+				if (param is not Dictionary<string, (object, Type)> dictParam)
 					command.SetParametersFromContainerObject<TParamType>(param);
 				else
 					command.SetParametersFromDictionary(dictParam);

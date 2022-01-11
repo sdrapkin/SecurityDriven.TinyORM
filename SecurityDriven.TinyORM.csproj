@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.3.3</Version>
     <Authors>Stan Drapkin</Authors>
@@ -10,7 +10,7 @@
     <Company />
     <PackageProjectUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM</PackageProjectUrl>
     <Description>Simple, fast, and secure micro ORM for .NET.</Description>
-    <Copyright>Copyright (c) 2020 Stan Drapkin</Copyright>
+    <Copyright>Copyright (c) 2022 Stan Drapkin</Copyright>
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>

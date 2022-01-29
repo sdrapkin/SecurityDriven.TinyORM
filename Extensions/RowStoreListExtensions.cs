@@ -27,9 +27,9 @@ namespace SecurityDriven.TinyORM.Extensions
 			RowStore[] arrayOfRowStore = listOfRowStoreAlias.GetList_itemsArray();
 			ref RowStore firstElement = ref arrayOfRowStore[0];
 
-			var settersArray = new Action<T, object>[firstElement.RowValues.Length];
-
 			var fieldNames = firstElement.Schema.FieldNames;
+			var settersArray = new Action<T, object>[fieldNames.Length];
+
 			var settersMap = ReflectionHelper_Setter<T>.Setters;
 			for (int i = 0; i < fieldNames.Length; ++i)
 			{
@@ -43,11 +43,11 @@ namespace SecurityDriven.TinyORM.Extensions
 				newArray[i] = objT;
 				object[] rowValues = arrayOfRowStore[i].RowValues;
 
-				for (i = 0; i < rowValues.Length; ++i)
+				for (i = 0; i < rowValues.Length - 1; ++i)
 				{
 					settersArray[i]?.Invoke(objT, rowValues[i]);
 				}//for
-				});
+			});
 			return newArray;
 		}// ToObjectArray<T>()
 

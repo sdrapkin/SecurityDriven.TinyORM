@@ -440,7 +440,7 @@ namespace SecurityDriven.TinyORM
 			{
 				int fieldCount = reader.FieldCount;
 				int fieldCountPlusOne = fieldCount + 1;
-				var fieldMap = new Dictionary<string, int>(fieldCount, Util.FastStringComparer.Instance);
+				var fieldMap = new Dictionary<string, int>(fieldCount, StringComparer.Ordinal);
 				var fieldNames = new string[fieldCount];
 				for (int i = 0; i < fieldNames.Length; ++i)
 				{

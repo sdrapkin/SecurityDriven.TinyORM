@@ -18,7 +18,7 @@ namespace SecurityDriven.TinyORM
 		{
 			if (obj is RowStore rowStore)
 			{
-				var propertyMap = new Dictionary<string, object>(rowStore.RowValues.Length, Util.FastStringComparer.Instance);
+				var propertyMap = new Dictionary<string, object>(rowStore.RowValues.Length, StringComparer.Ordinal);
 				foreach (var kvp in rowStore.Schema.FieldMap)
 				{
 					propertyMap.Add(kvp.Key, rowStore.RowValues[kvp.Value]);
@@ -28,7 +28,7 @@ namespace SecurityDriven.TinyORM
 			else
 			{
 				var getters = ReflectionHelper_Getter<T>.Getters;
-				var propertyMap = new Dictionary<string, object>(getters.Count, Util.FastStringComparer.Instance);
+				var propertyMap = new Dictionary<string, object>(getters.Count, StringComparer.Ordinal);
 				foreach (var kvp in getters)
 				{
 					propertyMap.Add(kvp.Key, kvp.Value(obj).Item1);
@@ -41,7 +41,7 @@ namespace SecurityDriven.TinyORM
 		{
 			string key;
 
-			var diffSet = new Dictionary<string, bool>(this.propertyMap.Count, Util.FastStringComparer.Instance); // HashSet<T> does not have a "capacity" ctor; Value is ignored
+			var diffSet = new Dictionary<string, bool>(this.propertyMap.Count, StringComparer.Ordinal); // HashSet<T> does not have a "capacity" ctor; Value is ignored
 			foreach (var kvp in this.propertyMap)
 			{
 				if (propertyMap.TryGetValue(key = kvp.Key, out var val) && !object.Equals(val, kvp.Value))

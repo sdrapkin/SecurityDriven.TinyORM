@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <LangVersion>10.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.3.4</Version>
+    <Version>1.3.5</Version>
     <Authors>Stan Drapkin</Authors>
     <PackageId>TinyORM</PackageId>
     <Company />
@@ -14,7 +14,7 @@
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>
-    <PackageReleaseNotes>Small performance improvements. System.Data.SqlClient dependency upgraded to v4.8.3.</PackageReleaseNotes>
+    <PackageReleaseNotes>Small performance improvements.</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>TinyORM.snk</AssemblyOriginatorKeyFile>
     <RepositoryUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM.git</RepositoryUrl>

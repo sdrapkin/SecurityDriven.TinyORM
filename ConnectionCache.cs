@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Transactions;
 
 namespace SecurityDriven.TinyORM
 {
-	using Utils;
-
 	internal static class ConnectionCache
 	{
 		public static ConcurrentDictionary<Transaction, ConnectionWrapperContainer> transactionConnections = new ConcurrentDictionary<Transaction, ConnectionWrapperContainer>();
@@ -54,7 +51,7 @@ namespace SecurityDriven.TinyORM
 						{
 							// Add a 2nd ConnectionWrapper
 							wrappedConnection = db.GetNewWrappedConnection();
-							_containerConnectionWrapperDictionary = new Dictionary<string, ConnectionWrapper>(capacity: 2, comparer: Util.FastStringComparer.Instance)
+							_containerConnectionWrapperDictionary = new Dictionary<string, ConnectionWrapper>(capacity: 2, comparer: StringComparer.Ordinal)
 							{
 								{ _containerConnectionString, _containerConnectionWrapper },
 								{ _connectionString, wrappedConnection }

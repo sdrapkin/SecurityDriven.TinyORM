@@ -16,16 +16,6 @@ namespace SecurityDriven.TinyORM.Utils
 
 		//========== IntToString() end ============
 
-		internal sealed class FastStringComparer : System.Collections.Generic.IEqualityComparer<string>
-		{
-			FastStringComparer() { }
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			public bool Equals(string x, string y) => string.Equals(x, y);
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			public int GetHashCode(string obj) => obj.GetHashCode();
-			public static FastStringComparer Instance = new FastStringComparer();
-		}//class FastStringComparer
-
 		internal sealed class FastTypeComparer : System.Collections.Generic.IEqualityComparer<Type>
 		{
 			FastTypeComparer() { }

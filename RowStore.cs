@@ -177,7 +177,7 @@ namespace SecurityDriven.TinyORM
 					if (optionalPropertyHashSet == null)
 					{
 						if (optionalProperties == null || optionalProperties.Length == 0) goto THROW;
-						optionalPropertyHashSet = new HashSet<string>(optionalProperties, Util.FastStringComparer.Instance);
+						optionalPropertyHashSet = new HashSet<string>(optionalProperties, StringComparer.Ordinal);
 					}
 					if (optionalPropertyHashSet.Contains(kvp.Key)) { continue; }
 				THROW: throw new Exception(string.Format("RowStore has no match for class [{0}] property [{1}].", typeof(T), kvp.Key));

@@ -13,11 +13,10 @@ namespace SecurityDriven.TinyORM.Utils
 		public const BindingFlags propertyBindingFlags = (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 		public const string PARAM_PREFIX = "@";
 
-
 		public static Dictionary<string, (object, Type)> ObjectToDictionary<T>(T obj) where T : class
 		{
 			var getters = ReflectionHelper_Getter<T>.Getters;
-			var dictionary = new Dictionary<string, (object, Type)>(getters.Count, Util.FastStringComparer.Instance);
+			var dictionary = new Dictionary<string, (object, Type)>(getters.Count, StringComparer.Ordinal);
 			var gettersEnumerator = getters.GetEnumerator();
 			while (gettersEnumerator.MoveNext())
 			{
@@ -30,7 +29,7 @@ namespace SecurityDriven.TinyORM.Utils
 		public static Dictionary<string, (object, Type)> ObjectToDictionary_Parameterized<T>(T obj) where T : class
 		{
 			var getters = ReflectionHelper_ParameterizedGetter<T>.Getters;
-			var dictionary = new Dictionary<string, (object, Type)>(getters.Count, Util.FastStringComparer.Instance);
+			var dictionary = new Dictionary<string, (object, Type)>(getters.Count, StringComparer.Ordinal);
 			var gettersEnumerator = getters.GetEnumerator();
 			while (gettersEnumerator.MoveNext())
 			{
@@ -44,7 +43,7 @@ namespace SecurityDriven.TinyORM.Utils
 		internal static Dictionary<string, Func<T, (object, Type)>> GetPropertyGetters<T>(Type type, string prefix = "") where T : class
 		{
 			var source = type.ContainsGenericParameters ? Util.ZeroLengthArray<PropertyInfo>.Value : type.GetProperties(propertyBindingFlags);
-			var dictionary = new Dictionary<string, Func<T, (object, Type)>>(source.Length, Util.FastStringComparer.Instance);
+			var dictionary = new Dictionary<string, Func<T, (object, Type)>>(source.Length, StringComparer.Ordinal);
 
 			var pInstance = Expression.Parameter(type);
 			var parameterExpressionArray = new[] { pInstance };
@@ -76,7 +75,7 @@ namespace SecurityDriven.TinyORM.Utils
 		internal static Dictionary<string, Action<T, object>> GetPropertySetters<T>(Type type) where T : class
 		{
 			var source = type.ContainsGenericParameters ? Util.ZeroLengthArray<PropertyInfo>.Value : type.GetProperties(propertyBindingFlags);
-			var dictionary = new Dictionary<string, Action<T, object>>(source.Length, Util.FastStringComparer.Instance);
+			var dictionary = new Dictionary<string, Action<T, object>>(source.Length, StringComparer.Ordinal);
 
 			var valueCast_container = new Expression[1];
 			ref var valueCast_container_0 = ref valueCast_container[0];

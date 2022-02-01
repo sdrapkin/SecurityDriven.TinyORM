@@ -25,7 +25,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (tableName == null) tableName = obj.AsSqlName();
 			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
-			var dictNew = new Dictionary<string, (object, Type)>(dictCount, Util.FastStringComparer.Instance);
+			var dictNew = new Dictionary<string, (object, Type)>(dictCount, StringComparer.Ordinal);
 
 			int i = 0;
 			string currentKey, paramName;
@@ -112,7 +112,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (tableName == null) tableName = obj.AsSqlName();
 			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
-			var dictNew = new Dictionary<string, (object, Type)>(dictCount, Util.FastStringComparer.Instance);
+			var dictNew = new Dictionary<string, (object, Type)>(dictCount, StringComparer.Ordinal);
 
 			int i = 0;
 			string currentKey, paramName;
@@ -167,7 +167,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id"; // "S" is source; "T" is target
 			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
-			var dictParams = new Dictionary<string, (object, Type)>(dictCount, Util.FastStringComparer.Instance);
+			var dictParams = new Dictionary<string, (object, Type)>(dictCount, StringComparer.Ordinal);
 
 			string currentKey, currentKeyBracketed, paramName;
 

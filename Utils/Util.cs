@@ -20,7 +20,7 @@ namespace SecurityDriven.TinyORM.Utils
 		{
 			FastTypeComparer() { }
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			public bool Equals(Type x, Type y) => x == y;
+			public bool Equals(Type x, Type y) => object.ReferenceEquals(x, y);
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public int GetHashCode(Type obj) => RuntimeHelpers.GetHashCode(obj);
 			public static FastTypeComparer Instance = new FastTypeComparer();

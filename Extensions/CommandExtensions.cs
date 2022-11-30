@@ -100,14 +100,14 @@ namespace SecurityDriven.TinyORM.Extensions
 				{
 					++count;
 					if (count == 1) enumerableType = item.GetType();
-					var sqlParameter = GenerateParameter(parameterName: name + Util.IntToString(ref count), parameterValue: item, parameterType: enumerableType);
+					object sqlParameter = GenerateParameter(parameterName: name + Util.IntToString(ref count), parameterValue: item, parameterType: enumerableType);
 					sqlParameterCollection.Add(sqlParameter);
 				}
 				command.CommandText = command.CommandText.Replace(name, count == 0 ? "SELECT TOP 0 0" : GetParamString(count, name));
 			}
 			else
 			{
-				var sqlParameter = GenerateParameter(parameterName: name, parameterValue: value, parameterType: type);
+				object sqlParameter = GenerateParameter(parameterName: name, parameterValue: value, parameterType: type);
 				sqlParameterCollection.Add(sqlParameter);
 			}
 		}// ProcessParameter()

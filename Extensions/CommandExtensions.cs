@@ -103,7 +103,8 @@ namespace SecurityDriven.TinyORM.Extensions
 					object sqlParameter = GenerateParameter(parameterName: name + Util.IntToString(ref count), parameterValue: item, parameterType: enumerableType);
 					sqlParameterCollection.Add(sqlParameter);
 				}
-				command.CommandText = command.CommandText.Replace(name, count == 0 ? "SELECT TOP 0 0" : GetParamString(count, name));
+				string paramListString = count == 0 ? "SELECT TOP 0 0" : GetParamString(count, name);
+				command.CommandText = command.CommandText.Replace(name, paramListString);
 			}
 			else
 			{

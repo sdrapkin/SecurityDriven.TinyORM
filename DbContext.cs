@@ -439,25 +439,24 @@ namespace SecurityDriven.TinyORM
 			if (reader.Read())
 			{
 				int fieldCount = reader.FieldCount;
-				int fieldCountPlusOne = fieldCount + 1;
 				var fieldMap = new Dictionary<string, int>(fieldCount, StringComparer.Ordinal);
 				var fieldNames = new string[fieldCount];
 				for (int i = 0; i < fieldNames.Length; ++i)
 				{
-					var fieldName = reader.GetName(i);
+					string fieldName = reader.GetName(i);
 					fieldMap.Add(fieldName, i);
 					fieldNames[i] = fieldName;
 				}
 				var resultSchema = new ResultSetSchema(resultSetId, fieldMap, fieldNames);
 
-				var rowValues = new object[fieldCountPlusOne];
+				var rowValues = new object[fieldCount + 1];
 				rowValues[fieldCount] = resultSchema;
 				reader.GetValues(rowValues);
 				rowStoreList.Add(new RowStore(rowValues));
 
 				while (reader.Read())
 				{
-					rowValues = new object[fieldCountPlusOne];
+					rowValues = new object[fieldCount + 1];
 					rowValues[fieldCount] = resultSchema;
 					reader.GetValues(rowValues);
 					rowStoreList.Add(new RowStore(rowValues));

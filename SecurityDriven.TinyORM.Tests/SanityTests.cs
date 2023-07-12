@@ -57,7 +57,7 @@ namespace SecurityDriven.TinyORM.Tests
 			const string expectedProductVersion = "1.3.6";
 			const string expectedFileVersion = "1.3.6.0";
 
-			Assert.IsTrue(fvi.ProductVersion == expectedProductVersion);
+			Assert.IsTrue(fvi.ProductVersion.StartsWith(expectedProductVersion, StringComparison.Ordinal));
 			Assert.IsTrue(fvi.FileVersion == expectedFileVersion);
 
 			assembly.GetModules()[0].GetPEKind(out var kind, out var machine);

@@ -4,18 +4,18 @@
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <LangVersion>11.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.3.6</Version>
+    <Version>1.3.7</Version>
     <Authors>Stan Drapkin</Authors>
     <PackageId>TinyORM</PackageId>
     <Company />
     <PackageProjectUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM</PackageProjectUrl>
     <Description>Simple, fast, and secure micro ORM for .NET.</Description>
-    <Copyright>Copyright (c) 2022 Stan Drapkin</Copyright>
+    <Copyright>Copyright (c) 2024 Stan Drapkin</Copyright>
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>
-    <PackageReleaseNotes>Security patch to mitigate Microsoft's CVE-2022-41064 (https://github.com/advisories/GHSA-8g2p-5pqh-5jmc).</PackageReleaseNotes>
-    <SignAssembly>false</SignAssembly>
+    <PackageReleaseNotes>Security patch to mitigate Microsoft's CVE-2024-0056 (https://github.com/advisories/GHSA-98g6-xh36-x2p7).</PackageReleaseNotes>
+    <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>TinyORM.snk</AssemblyOriginatorKeyFile>
     <RepositoryUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />

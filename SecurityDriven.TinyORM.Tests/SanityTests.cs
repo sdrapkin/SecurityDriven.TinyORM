@@ -54,8 +54,8 @@ namespace SecurityDriven.TinyORM.Tests
 		{
 			var assembly = typeof(TinyORM.DbContext).Assembly;
 			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-			const string expectedProductVersion = "1.3.6";
-			const string expectedFileVersion = "1.3.6.0";
+			const string expectedProductVersion = "1.3.7";
+			const string expectedFileVersion = "1.3.7.0";
 
 			Assert.IsTrue(fvi.ProductVersion.StartsWith(expectedProductVersion, StringComparison.Ordinal));
 			Assert.IsTrue(fvi.FileVersion == expectedFileVersion);

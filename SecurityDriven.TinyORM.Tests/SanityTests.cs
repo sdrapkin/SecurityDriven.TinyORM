@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -54,8 +54,8 @@ namespace SecurityDriven.TinyORM.Tests
 		{
 			var assembly = typeof(TinyORM.DbContext).Assembly;
 			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-			const string expectedProductVersion = "1.3.7";
-			const string expectedFileVersion = "1.3.7.0";
+			const string expectedProductVersion = "2.0.0";
+			const string expectedFileVersion = expectedProductVersion + ".0";
 
 			Assert.IsTrue(fvi.ProductVersion.StartsWith(expectedProductVersion, StringComparison.Ordinal));
 			Assert.IsTrue(fvi.FileVersion == expectedFileVersion);
@@ -508,7 +508,7 @@ namespace SecurityDriven.TinyORM.Tests
 			catch (AggregateException agg)
 			{
 				Assert.IsTrue(agg.InnerException is SqlException);
-				Assert.IsTrue((agg.InnerException as SqlException).Errors[1].ToString() == "System.Data.SqlClient.SqlError: Operation cancelled by user.");
+				Assert.IsTrue((agg.InnerException as SqlException).Errors[1].ToString() == "Microsoft.Data.SqlClient.SqlError: Operation cancelled by user.");
 			}
 		}
 

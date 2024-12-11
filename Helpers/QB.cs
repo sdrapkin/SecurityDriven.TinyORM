@@ -22,7 +22,7 @@ namespace SecurityDriven.TinyORM.Helpers
 
 		public static QueryInfo Insert<T>(T obj, Predicate<string> excludedProperties = null, string tableName = null) where T : class
 		{
-			if (tableName == null) tableName = obj.AsSqlName();
+			tableName ??= obj.AsSqlName();
 			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
 			var dictNew = new Dictionary<string, (object, Type)>(dictCount, StringComparer.Ordinal);
@@ -49,7 +49,7 @@ namespace SecurityDriven.TinyORM.Helpers
 				dictNew.Add(paramName, kvp.Value);
 			}//foreach
 
-			sb.Append(") VALUES (").Append(sbParams.ToString()).Append(')');
+			sb.Append(") VALUES (").Append(sbParams).Append(')');
 			var result = QueryInfo.Create(sql: sb.ToString(), parameterMap: dictNew);
 			return result;
 		}// Insert<T>()
@@ -78,7 +78,7 @@ namespace SecurityDriven.TinyORM.Helpers
 			Dictionary<string, (object, Type)> dict = null
 		) where T : class where TParamType : class
 		{
-			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
+			dict ??= ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			QueryInfo queryInfo = UpdateRaw<T>(obj, includedProperties, tableName, dict);
 			var paramDictAlias = queryInfo.ParameterMap;
 
@@ -109,8 +109,8 @@ namespace SecurityDriven.TinyORM.Helpers
 			Dictionary<string, (object, Type)> dict = null
 		) where T : class
 		{
-			if (tableName == null) tableName = obj.AsSqlName();
-			if (dict == null) dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
+			tableName ??= obj.AsSqlName();
+			dict ??= ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
 			var dictNew = new Dictionary<string, (object, Type)>(dictCount, StringComparer.Ordinal);
 
@@ -148,8 +148,8 @@ namespace SecurityDriven.TinyORM.Helpers
 
 		public static QueryInfo Delete<TParamType>(string tableName = null, string whereSql = null, TParamType whereParam = null) where TParamType : class
 		{
-			if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");
-			if (string.IsNullOrEmpty(whereSql)) throw new ArgumentNullException("whereSql");
+			if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException(nameof(tableName));
+			if (string.IsNullOrEmpty(whereSql)) throw new ArgumentNullException(nameof(whereSql));
 
 			string sql = "DELETE FROM " + tableName + " WHERE " + whereSql;
 			var whereParamMap = default(Dictionary<string, (object, Type)>);
@@ -163,7 +163,7 @@ namespace SecurityDriven.TinyORM.Helpers
 		#region Upsert<T>
 		public static QueryInfo Upsert<T>(T obj, string tableName = null, Predicate<string> excludedInsertProperties = null, Predicate<string> includedUpdateProperties = null, string mergeOnSql = null) where T : class
 		{
-			if (tableName == null) tableName = obj.AsSqlName();
+			tableName ??= obj.AsSqlName();
 			if (string.IsNullOrEmpty(mergeOnSql)) mergeOnSql = "S.Id=T.Id"; // "S" is source; "T" is target
 			var dict = ReflectionHelper_Shared.ObjectToDictionary<T>(obj);
 			var dictCount = dict.Count;
@@ -217,20 +217,20 @@ namespace SecurityDriven.TinyORM.Helpers
 
 			sbSql
 				.Append(") AS (SELECT ")
-				.Append(sbParams.ToString())
+				.Append(sbParams)
 				.Append(")\nMERGE ")
 				.Append(tableName)
 				.Append(" WITH (HOLDLOCK) T USING S ON ")
 				.Append(mergeOnSql)
 				.Append("\nWHEN NOT MATCHED THEN\n\tINSERT (")
-				.Append(sbInsertColumns.ToString()).Append(") VALUES (")
+				.Append(sbInsertColumns).Append(") VALUES (")
 				.Append(sbInsertValues);
 
 			if (updateColumnCount > 0)
 			{
 				sbSql
 					.Append(")\nWHEN MATCHED THEN\n\tUPDATE SET ")
-					.Append(sbUpdateSql.ToString());
+					.Append(sbUpdateSql);
 			}
 			else
 			{

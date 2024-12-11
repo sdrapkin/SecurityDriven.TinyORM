@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-    <LangVersion>11.0</LangVersion>
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>13.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.3.7</Version>
+    <Version>2.0.0</Version>
     <Authors>Stan Drapkin</Authors>
     <PackageId>TinyORM</PackageId>
     <Company />
@@ -14,18 +14,13 @@
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/sdrapkin/SecurityDriven.TinyORM/master/TinyORM-Logo-Icon.png</PackageIconUrl>
     <PackageTags>ORM .NET</PackageTags>
-    <PackageReleaseNotes>Security patch to mitigate Microsoft's CVE-2024-0056 (https://github.com/advisories/GHSA-98g6-xh36-x2p7).</PackageReleaseNotes>
+    <PackageReleaseNotes>Switched to Microsoft.Data.SqlClient [https://techcommunity.microsoft.com/blog/sqlserver/announcement-system-data-sqlclient-package-is-now-deprecated/4227205].
+Retargeted for [net8.0] (modern use) and [netstandard2.0] (legacy .NET 4.8 use).
+Retested on .NET 4.8.1, 6 ,7, 8, and 9.</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>TinyORM.snk</AssemblyOriginatorKeyFile>
     <RepositoryUrl>https://github.com/sdrapkin/SecurityDriven.TinyORM.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-    <DocumentationFile>SecurityDriven.TinyORM.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
     <DocumentationFile>SecurityDriven.TinyORM.xml</DocumentationFile>
   </PropertyGroup>
 
@@ -36,14 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
-		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net452'">
-		<Reference Include="System.Transactions" />
-	</ItemGroup>
-
+	<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
 </Project>

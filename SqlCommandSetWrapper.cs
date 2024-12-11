@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
@@ -7,8 +7,8 @@ namespace SecurityDriven.TinyORM
 {
 	internal sealed class SqlCommandSetWrapper : IDisposable
 	{
-		static Type commandSetType = typeof(SqlCommand).Assembly.GetType("System.Data.SqlClient.SqlCommandSet")
-			?? throw new Exception($"{nameof(SqlCommandSetWrapper)}: Could not find[System.Data.SqlClient.SqlCommandSet].");
+		static Type commandSetType = typeof(SqlCommand).Assembly.GetType("Microsoft.Data.SqlClient.SqlCommandSet")
+			?? throw new Exception($"{nameof(SqlCommandSetWrapper)}: Could not find[Microsoft.Data.SqlClient.SqlCommandSet].");
 		static Func<object> commandSetCtor = Expression.Lambda<Func<object>>(Expression.New(commandSetType)).Compile();
 		object commandSetInstance;
 		Action<SqlCommand> appendDelegate;
